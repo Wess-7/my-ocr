@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>选选</title>
+<title>🪄 选选</title>
 <style>
   :root {
     --primary: #6c5ce7;
@@ -33,7 +33,7 @@
 <body>
 
 <div class="card">
-  <h3><span>📋</span> 1. 粘贴英文原文到「选选」</h3>
+  <h3><span>📋</span> 1. 粘贴英文原文到「选选」 🪄</h3>
   <textarea id="inputText" placeholder="把提取出来的英文阅读理解粘贴到这里..."></textarea>
   <button class="btn" onclick="processText()">🔍 生成语境选词</button>
 </div>
@@ -103,7 +103,7 @@ function processText() {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.add('selected');
             });
             if (!wordTranslations[lowerWord]) {
-              fetchTranslation(lowerWord);
+              fetchTranslationJSONP(lowerWord);
             }
           }
           updateOutput();
@@ -125,27 +125,43 @@ function processText() {
   document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
 }
 
-// 有道词典公开接口
-async function fetchTranslation(word) {
+// JSONP 魔法查词
+function fetchTranslationJSONP(word) {
   wordTranslations[word] = "查询中..."; 
   updateOutput();
 
-  try {
-    const url = `https://dict.youdao.com/suggest?num=1&ver=3.0&doctype=json&cache=false&le=en&q=${word}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    
-    if (data.result && data.result.code === 200 && data.result.entries.length > 0) {
-      let explain = data.result.entries[0].explain;
-      explain = explain.replace(/^[a-z]+\.\s*/i, ''); // 清理词性前缀
-      wordTranslations[word] = explain;
-    } else {
+  const callbackName = 'youdao_cb_' + Math.random().toString(36).substr(2, 9);
+  
+  window[callbackName] = function(data) {
+    try {
+      if (data.result && data.result.code === 200 && data.result.entries.length > 0) {
+        let explain = data.result.entries[0].explain;
+        explain = explain.replace(/^[a-z]+\.\s*/i, ''); 
+        wordTranslations[word] = explain;
+      } else {
+        wordTranslations[word] = "[待填]";
+      }
+    } catch (e) {
       wordTranslations[word] = "[待填]";
     }
-  } catch (e) {
+    updateOutput();
+    const script = document.getElementById(callbackName);
+    if (script) script.remove();
+    delete window[callbackName];
+  };
+
+  const script = document.createElement('script');
+  script.id = callbackName;
+  script.src = `https://dict.youdao.com/suggest?num=1&ver=3.0&doctype=jsonp&cache=false&le=en&q=${word}&callback=${callbackName}`;
+  
+  script.onerror = function() {
     wordTranslations[word] = "[待填]";
-  }
-  updateOutput();
+    updateOutput();
+    if (script) script.remove();
+    delete window[callbackName];
+  };
+
+  document.body.appendChild(script);
 }
 
 function updateOutput() {
