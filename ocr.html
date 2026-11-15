@@ -1,54 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生词OCR</title>
+<title>单词点选提取器</title>
 <style>
-  body { padding: 20px; font-family: sans-serif; }
-  #status { color: #6c5ce7; margin: 15px 0; font-weight: bold; }
-  #output { white-space: pre-wrap; margin-top: 20px; line-height: 1.6; font-size: 16px; }
+  body { font-family: sans-serif; padding: 15px; background: #f0f2f5; margin: 0; }
+  .box { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+  textarea { width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; font-size: 14px; font-family: inherit; outline: none; }
+  .btn { width: 100%; padding: 12px; background: #6c5ce7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+  .btn:active { background: #5a4bcf; }
+  .btn-green { background: #00b894; }
+  .btn-green:active { background: #009e7f; }
+  
+  .word-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .word-chip { 
+    display: inline-block; padding: 6px 10px; background: #f1f2f6; border-radius: 6px; 
+    font-size: 15px; cursor: pointer; user-select: none; transition: 0.2s;
+    border: 1px solid transparent;
+  }
+  .word-chip.selected { background: #e8e5ff; color: #6c5ce7; border-color: #6c5ce7; font-weight: bold; }
+  
+  #resultArea { display: none; }
 </style>
 </head>
 <body>
-<h3>从相册选图</h3>
-<input type="file" accept="image/*" id="fileInput">
-<div id="status"></div>
-<div id="output"></div>
 
-<script src="https://fastly.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<div class="box">
+  <h3 style="margin-top:0;">1. 粘贴英文原文</h3>
+  <textarea id="inputText" placeholder="把从夸克/微信提取出来的整段英文，粘贴到这里..."></textarea>
+  <button class="btn" onclick="splitWords()">✂️ 拆分单词</button>
+</div>
+
+<div class="box" id="wordsBox" style="display:none;">
+  <h3 style="margin-top:0;">2. 点选你要背的单词</h3>
+  <div style="font-size: 13px; color: #888; margin-bottom: 10px;">（点一下变紫色，再点一下取消）</div>
+  <div class="word-container" id="wordContainer"></div>
+</div>
+
+<div class="box" id="resultArea">
+  <h3 style="margin-top:0;">3. 导出结果</h3>
+  <textarea id="outputText" readonly></textarea>
+  <button class="btn btn-green" onclick="copyResult()">📋 复制这些词</button>
+</div>
+
 <script>
-document.getElementById('fileInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+let selectedWords = new Set();
+let wordTranslations = {};
+
+// 拆分文本
+function splitWords() {
+  const text = document.getElementById('inputText').value;
+  if (!text.trim()) return alert('请先粘贴文字！');
+
+  // 匹配英文单词（忽略标点、数字）
+  const matches = text.match(/[a-zA-Z]+/g);
+  if (!matches) return alert('没有找到英文单词！');
+
+  // 去重，全转小写
+  const uniqueWords = [...new Set(matches.map(w => w.toLowerCase()))];
   
-  const statusEl = document.getElementById('status');
-  const outputEl = document.getElementById('output');
-  
-  statusEl.innerText = '正在准备引擎，请稍候...（第一次会慢一点）';
-  outputEl.innerText = '';
-  
-  try {
-    const worker = await Tesseract.createWorker('eng', 1, {
-      workerPath: 'https://fastly.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
-      corePath: 'https://fastly.jsdelivr.net/npm/tesseract.js-core@5',
-      langPath: 'https://fastly.jsdelivr.net/npm/@tesseract.js-data/eng',
-      logger: m => {
-        if (m.status === 'loading tesseract core') statusEl.innerText = '正在加载核心...';
-        else if (m.status === 'loading language traineddata') statusEl.innerText = `正在下载语言包... ${Math.round(m.progress * 100)}%`;
-        else if (m.status === 'recognizing text') statusEl.innerText = `正在识别文字... ${Math.round(m.progress * 100)}%`;
-      }
-    });
-    
-    const result = await worker.recognize(file);
-    statusEl.innerText = '✅ 识别完成！';
-    outputEl.innerText = result.data.text;
-    await worker.terminate();
-  } catch (err) {
-    statusEl.innerText = '❌ 出错了，请确认使用的是 Chrome 浏览器';
-    outputEl.innerText = '错误信息：' + err.message;
+  // 过滤掉超短词或超长词
+  const validWords = uniqueWords.filter(w => w.length > 1 && w.length < 20);
+
+  const container = document.getElementById('wordContainer');
+  container.innerHTML = '';
+  selectedWords.clear();
+  wordTranslations = {};
+
+  validWords.forEach(word => {
+    const span = document.createElement('span');
+    span.className = 'word-chip';
+    span.textContent = word;
+    span.onclick = () => toggleWord(word, span);
+    container.appendChild(span);
+  });
+
+  document.getElementById('wordsBox').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+}
+
+// 点击选中
+function toggleWord(word, span) {
+  if (selectedWords.has(word)) {
+    selectedWords.delete(word);
+    span.classList.remove('selected');
+  } else {
+    selectedWords.add(word);
+    span.classList.add('selected');
+    // 如果没有翻译过，去查一下
+    if (!wordTranslations[word]) {
+      fetchTranslation(word);
+    }
   }
-});
+  updateOutput();
+}
+
+// 查翻译 (使用免费的 MyMemory API)
+async function fetchTranslation(word) {
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${word}&langpair=en|zh-CN`);
+    const data = await res.json();
+    let trans = data.responseData.translatedText;
+    // 清理一下多余内容
+    if (trans && trans.toLowerCase() !== word) {
+      wordTranslations[word] = trans;
+    } else {
+      wordTranslations[word] = ""; // 翻译失败或没变化
+    }
+  } catch (e) {
+    wordTranslations[word] = "";
+  }
+  updateOutput();
+}
+
+// 更新导出结果
+function updateOutput() {
+  const resultArea = document.getElementById('resultArea');
+  const outputText = document.getElementById('outputText');
+  
+  if (selectedWords.size === 0) {
+    resultArea.style.display = 'none';
+    return;
+  }
+
+  resultArea.style.display = 'block';
+  let lines = [];
+  selectedWords.forEach(word => {
+    let trans = wordTranslations[word] ? wordTranslations[word] : "待填写";
+    lines.push(`${word} - ${trans}`);
+  });
+  outputText.value = lines.join('\n');
+}
+
+// 复制结果
+function copyResult() {
+  const outputText = document.getElementById('outputText');
+  if (!outputText.value) return;
+  outputText.select();
+  document.execCommand('copy');
+  alert('✅ 复制成功！快去抽卡机里粘贴吧！');
+}
 </script>
 </body>
 </html>
