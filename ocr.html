@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生词提取器 - 语境版</title>
+<title>生词提取器 - 完美版</title>
 <style>
   :root {
     --primary: #6c5ce7;
@@ -12,53 +12,22 @@
     --text-main: #2d3436;
   }
   * { box-sizing: border-box; }
-  body { 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-    background: var(--bg); 
-    margin: 0; 
-    padding: 15px; 
-    color: var(--text-main);
-    padding-bottom: 40px;
-  }
-  .card { 
-    background: white; 
-    border-radius: 16px; 
-    padding: 20px; 
-    margin-bottom: 15px; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
-  }
+  body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text-main); padding-bottom: 40px; }
+  .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
   h3 { margin-top: 0; font-size: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-  textarea { 
-    width: 100%; 
-    height: 120px; 
-    border: 2px solid #eee; 
-    border-radius: 12px; 
-    padding: 12px; 
-    font-size: 14px; 
-    outline: none; 
-    resize: none;
-    line-height: 1.5;
-  }
+  textarea { width: 100%; height: 120px; border: 2px solid #eee; border-radius: 12px; padding: 12px; font-size: 14px; outline: none; resize: none; line-height: 1.5; }
   textarea:focus { border-color: var(--primary); }
-  .btn { 
-    width: 100%; padding: 14px; background: var(--primary); color: white; border: none; 
-    border-radius: 25px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; 
-  }
+  .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
   .btn:active { transform: scale(0.96); }
   .btn-copy { background: #00b894; }
   
   #readingArea { display: none; max-height: 45vh; overflow-y: auto; padding-right: 5px; background: #fafafa; border-radius: 8px; padding: 10px;}
   .sentence-row { margin-bottom: 12px; line-height: 2; font-size: 15px; }
-  .sentence-num { 
-    color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; 
-    background: var(--primary-light); padding: 2px 6px; border-radius: 6px; 
-  }
-  .clickable-word { 
-    cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block;
-  }
-  .clickable-word.selected { 
-    background: var(--primary); color: white; font-weight: bold; 
-  }
+  .sentence-num { color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
+  .clickable-word { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; }
+  .clickable-word.selected { background: var(--primary); color: white; font-weight: bold; }
+  .clickable-word.translating { background: #ffeaa7; color: #d63031; }
+  
   #resultArea { display: none; position: sticky; bottom: 0; z-index: 10; border-top: 2px dashed #eee;}
 </style>
 </head>
@@ -71,29 +40,29 @@
 </div>
 
 <div class="card" id="readingBox" style="display:none;">
-  <h3><span>👆</span> 2. 在句子里直接点单词</h3>
+  <h3><span>👆</span> 2. 在句子里点单词（自动翻译）</h3>
   <div id="readingArea"></div>
 </div>
 
 <div class="card" id="resultArea">
-  <h3><span>📤</span> 3. 已选生词</h3>
-  <textarea id="outputText" readonly style="height: 80px;"></textarea>
+  <h3><span>📤</span> 3. 已选生词（可修改）</h3>
+  <textarea id="outputText" style="height: 100px; border-color: #00b894;"></textarea>
   <button class="btn btn-copy" onclick="copyResult()">📋 一键复制</button>
 </div>
 
 <script>
 let selectedWords = new Set();
+let wordTranslations = {}; // 缓存翻译结果
 
 function processText() {
   const text = document.getElementById('inputText').value;
   if (!text.trim()) { alert('请先粘贴文字哦！'); return; }
 
-  // 1. 简单粗暴地切分：只要有换行，或者有 . ! ? 就算一句
   const rawSentences = text.split(/[\n]+|(?<=[.!?])\s+/);
-  
   const readingArea = document.getElementById('readingArea');
   readingArea.innerHTML = '';
   selectedWords.clear();
+  wordTranslations = {};
   updateOutput();
 
   let sentenceIndex = 1;
@@ -101,7 +70,6 @@ function processText() {
 
   rawSentences.forEach(sentence => {
     const trimmed = sentence.trim();
-    // 过滤掉空格、纯数字或没英文字母的行
     if (trimmed.length === 0 || !/[a-zA-Z]/.test(trimmed)) return;
 
     hasContent = true;
@@ -113,7 +81,6 @@ function processText() {
     numSpan.textContent = sentenceIndex + '.';
     row.appendChild(numSpan);
 
-    // 把句子拆成 [英文字母] 和 [其他字符(标点/空格)]
     const tokens = trimmed.match(/[a-zA-Z]+|[^a-zA-Z]+/g) || [];
 
     tokens.forEach(token => {
@@ -127,15 +94,21 @@ function processText() {
 
         wordSpan.onclick = function() {
           if (selectedWords.has(lowerWord)) {
+            // 取消选中
             selectedWords.delete(lowerWord);
             document.querySelectorAll(`.clickable-word`).forEach(el => {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.remove('selected');
             });
           } else {
+            // 选中
             selectedWords.add(lowerWord);
             document.querySelectorAll(`.clickable-word`).forEach(el => {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.add('selected');
             });
+            // 去查翻译
+            if (!wordTranslations[lowerWord]) {
+              fetchTranslation(lowerWord);
+            }
           }
           updateOutput();
         };
@@ -149,14 +122,34 @@ function processText() {
     sentenceIndex++;
   });
 
-  if (!hasContent) {
-    alert('好像没有识别到英文单词，请检查粘贴的内容哦！');
-    return;
-  }
+  if (!hasContent) { alert('没有识别到英文单词哦！'); return; }
 
   document.getElementById('readingBox').style.display = 'block';
   document.getElementById('readingArea').style.display = 'block';
   document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
+}
+
+// 调用国内可用的免费翻译 API
+async function fetchTranslation(word) {
+  // 先在界面上给个提示
+  wordTranslations[word] = "翻译中..."; 
+  updateOutput();
+
+  try {
+    // 使用国内比较稳定的免费接口（支持跨域）
+    const res = await fetch(`https://api.vvhan.com/api/trans?text=${word}&from=en&to=zh`);
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      // 接口返回的数据格式，提取中文
+      wordTranslations[word] = data.data;
+    } else {
+      wordTranslations[word] = "[待填]";
+    }
+  } catch (e) {
+    wordTranslations[word] = "[待填]";
+  }
+  updateOutput();
 }
 
 function updateOutput() {
@@ -171,7 +164,8 @@ function updateOutput() {
   resultArea.style.display = 'block';
   let lines = [];
   selectedWords.forEach(word => {
-    lines.push(`${word} - `);
+    let trans = wordTranslations[word] || "[待填]";
+    lines.push(`${word} - ${trans}`);
   });
   outputText.value = lines.join('\n');
 }
