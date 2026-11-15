@@ -6,66 +6,94 @@
 <title>🪄 选选</title>
 <style>
   :root {
-    --primary: #6c5ce7;
-    --primary-light: #f0edff;
-    --bg: #f0f2f5;
-    --text-main: #2d3436;
-    --border: #eee;
-    --success: #00b894;
+    --primary: #8C7AFF; /* 香芋紫 */
+    --primary-light: #F4F1FF;
+    --bg: #FDFCF8; /* 奶油米白 */
+    --text-main: #4A4A4A;
+    --border: #EBE6DF; /* 暖灰边框 */
   }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text-main); padding-bottom: 40px; }
-  .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-  h3 { margin-top: 0; font-size: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-  textarea { width: 100%; height: 100px; border: 2px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; outline: none; resize: none; line-height: 1.5; }
-  textarea:focus { border-color: var(--primary); }
+  body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text-main); padding-bottom: 40px; line-height: 1.6;}
   
-  .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); transition: transform 0.1s; }
+  .app-title { 
+    text-align: center; color: var(--primary); font-size: 26px; font-weight: 900;
+    margin: 10px 0 25px 0; text-shadow: 2px 2px 4px rgba(140, 122, 255, 0.15); letter-spacing: 2px;
+  }
+  
+  .card { 
+    background: #FFFFFF; 
+    border-radius: 20px; 
+    padding: 25px 20px; 
+    margin-bottom: 20px; 
+    border: 1px solid var(--border); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+  }
+  
+  h3 { margin-top: 0; font-size: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; justify-content: space-between;}
+  .title-left { display: flex; align-items: center; gap: 8px;}
+  h4 { color: var(--primary); margin-bottom: 5px; margin-top: 15px; font-size: 14px; font-weight: bold;}
+  
+  textarea { 
+    width: 100%; height: 120px; border: 2px solid var(--border); border-radius: 12px; 
+    padding: 12px; font-size: 14px; outline: none; resize: none; line-height: 1.6; 
+    background: #FAFAFA; color: var(--text-main); transition: border-color 0.3s;
+  }
+  textarea:focus { border-color: var(--primary); background: #FFFFFF; }
+  
+  /* 按钮统一改成圆润药丸形 */
+  .btn { 
+    width: 100%; padding: 14px; background: var(--primary); color: white; border: none; 
+    border-radius: 50px; font-size: 15px; font-weight: bold; margin-top: 15px; cursor: pointer; 
+    box-shadow: 0 4px 15px rgba(140, 122, 255, 0.2); 
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); 
+  }
   .btn:active { transform: scale(0.96); }
-  .btn-generate { background: #ff9f43; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3); margin-top: 10px; }
-  .btn-merge { background: #0984e3; box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3); margin-top: 10px; }
-  .btn-copy { background: var(--success); box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3); margin-top: 10px; }
+  .btn-generate { background: #FFB259; box-shadow: 0 4px 15px rgba(255, 178, 89, 0.2); margin-top: 10px;}
+  .btn-merge { background: #00B894; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.2); margin-top: 10px;}
+  .btn-copy { background: var(--primary); box-shadow: 0 4px 15px rgba(140, 122, 255, 0.2); margin-top: 10px;}
   
-  #readingArea { display: none; max-height: 40vh; overflow-y: auto; padding-right: 5px; background: #fafafa; border-radius: 8px; padding: 10px;}
-  .sentence-row { margin-bottom: 12px; line-height: 2; font-size: 15px; }
-  .sentence-num { color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
+  #readingArea { display: none; max-height: 40vh; overflow-y: auto; padding-right: 5px; background: #FAFAFA; border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid var(--border);}
+  .sentence-row { margin-bottom: 15px; line-height: 2.2; font-size: 15px; }
+  .sentence-num { color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; background: var(--primary-light); padding: 3px 8px; border-radius: 8px; }
   
-  .clickable-word { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; }
-  .clickable-word.selected { background: var(--primary); color: white; font-weight: bold; }
+  /* 选词高亮 */
+  .clickable-word { cursor: pointer; padding: 2px 4px; border-radius: 6px; transition: all 0.2s; display: inline-block; }
+  .clickable-word.selected { background: var(--primary); color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(140, 122, 255, 0.3); }
   
-  #resultArea { display: none; border: 2px dashed #00b894; background: #e8f8f5; }
-  #resultArea h3 { color: #00b894; }
-  #resultArea h4 { color: #00b894; margin-bottom: 5px; margin-top: 15px; font-size: 14px;}
+  #resultArea { display: none; border: 2px dashed #00B894; background: #F4FCFA; margin-top: 20px;}
+  #resultArea h3 { color: #00B894; }
   
   .result-textarea { 
-    border-color: #00b894; 
+    border-color: var(--border); 
     background: white;
     white-space: pre-wrap; 
     word-wrap: break-word; 
     word-break: normal;
     height: 80px;
     font-weight: bold;
-    color: #2d3436;
+    color: var(--text-main);
     margin-bottom: 5px;
   }
-  .hint { font-size: 12px; color: #888; margin-bottom: 5px; }
+  .hint { font-size: 12px; color: #999; margin-bottom: 5px; }
 
   /* 翻译合并专用样式 */
   .merge-container { display: flex; gap: 10px; margin-top: 10px; }
   .merge-box { flex: 1; }
-  .merge-box label { font-size: 12px; font-weight: bold; color: var(--text-main); margin-bottom: 5px; display: block; }
+  .merge-box label { font-size: 13px; font-weight: bold; color: var(--text-main); margin-bottom: 5px; display: block;}
 </style>
 </head>
 <body>
 
+<div class="app-title">🪄 选选</div>
+
 <div class="card">
-  <h3><span>📋</span> 1. 粘贴英文原文到「选选」 🪄</h3>
+  <h3><span class="title-left"><span>📋</span> 1. 粘贴英文原文到「选选」</span></h3>
   <textarea id="inputText" placeholder="把提取出来的英文阅读理解粘贴到这里..."></textarea>
   <button class="btn" onclick="processText()">🔍 生成语境选词</button>
 </div>
 
 <div class="card" id="readingBox" style="display:none;">
-  <h3><span>👆</span> 2. 在句子里直接点单词</h3>
+  <h3><span class="title-left"><span>👆</span> 2. 在句子里直接点单词</span></h3>
   <div id="readingArea"></div>
   <button class="btn btn-generate" onclick="generateFinal()">✨ 一键生成</button>
 </div>
@@ -73,7 +101,7 @@
 <div class="card" id="resultArea">
   <h3><span>📤</span> 3. 生成结果</h3>
   
-  <h4>减号版（复制去手机翻译软件）</h4>
+  <h4>减号版（复制去翻译）</h4>
   <textarea id="finalOutput" class="result-textarea" readonly></textarea>
 
   <h4>换行版（备用）</h4>
@@ -83,29 +111,26 @@
   <textarea id="freqOutput" class="result-textarea" readonly></textarea>
 </div>
 
-<!-- 新加的翻译合并区 -->
 <div class="card">
-  <h3><span>🔗</span> 4. 翻译合并（最终步）</h3>
+  <h3><span>🔗</span> 4. 翻译合并</h3>
   <div class="hint" style="margin-bottom:10px;">把手机翻译出来的中文，和上方的英文分别粘在下面，点合并！</div>
   
   <div class="merge-container">
     <div class="merge-box">
       <label>英文（减号版）</label>
-      <textarea id="mergeEn" placeholder="apple - banana - cat"></textarea>
+      <textarea id="mergeEn" placeholder="apple - banana - cat" style="height: 80px;"></textarea>
     </div>
     <div class="merge-box">
       <label>中文（翻译结果）</label>
-      <textarea id="mergeCn" placeholder="苹果 - 香蕉 - 猫"></textarea>
+      <textarea id="mergeCn" placeholder="苹果 - 香蕉 - 猫" style="height: 80px;"></textarea>
     </div>
   </div>
 
   <button class="btn btn-merge" onclick="mergeTranslations()">🔗 合并生成最终格式</button>
 
   <div style="margin-top:15px;">
-    <h4 style="color:var(--primary); margin-bottom:5px; font-size:14px;">最终结果（一行一个，直接去抽卡机）</h4>
+    <h4 style="color:var(--primary);">最终结果（直接去抽卡机）</h4>
     <textarea id="mergeOutput" class="result-textarea" style="border-color:var(--primary); height:100px;" readonly placeholder="这里会生成 apple - 苹果..."></textarea>
-    
-    <!-- 新加的复制按钮 -->
     <button class="btn btn-copy" onclick="copyMergeResult()">📋 一键复制最终结果</button>
   </div>
 </div>
@@ -196,16 +221,10 @@ function generateFinal() {
 
   const selectedArray = Array.from(selectedWords);
   
-  // 减号版
-  const pureString = selectedArray.join(' - ');
-  document.getElementById('finalOutput').value = pureString;
-  // 顺便填到下面的合并框里，方便你
-  document.getElementById('mergeEn').value = pureString;
-
-  // 换行版
+  document.getElementById('finalOutput').value = selectedArray.join(' - ');
+  document.getElementById('mergeEn').value = selectedArray.join(' - ');
   document.getElementById('newlineOutput').value = selectedArray.join('\n');
 
-  // 词频版
   const freqArray = selectedArray.map(word => {
     const count = wordFrequency[word] || 1;
     return `${word}(${count}次)`;
@@ -217,7 +236,6 @@ function generateFinal() {
   resultArea.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 合并翻译
 function mergeTranslations() {
   const enStr = document.getElementById('mergeEn').value;
   const cnStr = document.getElementById('mergeCn').value;
@@ -227,7 +245,6 @@ function mergeTranslations() {
     return;
   }
 
-  // 智能拆分：不管它是用减号、破折号、逗号，还是空格隔开的，统统切开
   const enArr = enStr.split(/[-—，,]/).map(s => s.trim()).filter(Boolean);
   const cnArr = cnStr.split(/[-—，,]/).map(s => s.trim()).filter(Boolean);
 
@@ -245,7 +262,6 @@ function mergeTranslations() {
   document.getElementById('mergeOutput').value = resultLines.join('\n');
 }
 
-// 一键复制最终结果
 function copyMergeResult() {
   const output = document.getElementById('mergeOutput');
   if (!output.value) {
