@@ -6,12 +6,14 @@
 <title>🏪 脑力小卖部</title>
 <style>
   :root {
-    --primary: #6c5ce7;
-    --primary-light: #f0edff;
-    --bg: #f7f8fa;
-    --text-main: #2d3436;
-    --text-sub: #636e72;
-    --card-bg: #ffffff;
+    /* 奶油原木风配色 */
+    --primary: #8C7AFF; /* 香芋紫 */
+    --primary-light: #F4F1FF;
+    --bg: #FDFCF8; /* 奶油米白 */
+    --text-main: #4A4A4A; /* 深灰，不刺眼 */
+    --text-sub: #8E8E8E;
+    --card-bg: #FFFFFF;
+    --card-border: #EBE6DF; /* 暖灰色边框 */
   }
 
   * {
@@ -24,10 +26,38 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg);
     color: var(--text-main);
-    line-height: 1.8;
+    line-height: 1.9; /* 增加呼吸感 */
     -webkit-font-smoothing: antialiased;
     padding: 20px;
     padding-bottom: 60px;
+  }
+
+  /* 顶部营业灯牌 */
+  .shop-header {
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+    background-color: #FFFFFF;
+    border: 1px solid var(--card-border);
+    border-radius: 50px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .shop-header .dot {
+    width: 8px;
+    height: 8px;
+    background-color: #00B894;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 184, 148, 0.6);
   }
 
   .container {
@@ -35,19 +65,20 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 25px;
   }
 
   .card {
     background: var(--card-bg);
-    border-radius: 24px;
+    border-radius: 20px;
     padding: 35px 25px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--card-border); /* 纸质边框感 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
     position: relative;
     overflow: hidden;
   }
 
-  /* 装饰性光晕 */
+  /* 装饰性光晕 - 极其微弱 */
   .card::before {
     content: '';
     position: absolute;
@@ -55,20 +86,20 @@
     right: -50px;
     width: 150px;
     height: 150px;
-    background: radial-gradient(circle, rgba(108, 92, 231, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(140, 122, 255, 0.05) 0%, transparent 70%);
     border-radius: 50%;
   }
 
   /* --- 封面特殊样式 --- */
   .cover {
     text-align: center;
-    padding: 80px 25px;
-    background: linear-gradient(135deg, #ffffff 0%, #f9f8ff 100%);
+    padding: 70px 25px;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FCFAFF 100%);
   }
   .cover .icon { font-size: 48px; margin-bottom: 20px; }
   .cover h1 { font-size: 28px; color: var(--primary); letter-spacing: 2px; margin-bottom: 5px; }
-  .cover .en-title { font-size: 12px; color: var(--text-sub); letter-spacing: 1px; margin-bottom: 40px; }
-  .cover .poem { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .cover .en-title { font-size: 12px; color: var(--text-sub); letter-spacing: 1.5px; margin-bottom: 40px; }
+  .cover .poem { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
   .cover .en-poem { font-size: 13px; color: var(--text-sub); font-style: italic; }
 
   /* --- 文字排版 --- */
@@ -81,13 +112,6 @@
     gap: 8px;
   }
 
-  .subtitle {
-    font-size: 13px;
-    color: var(--text-sub);
-    margin-bottom: 20px;
-    display: block;
-  }
-
   p {
     font-size: 14.5px;
     color: var(--text-main);
@@ -97,9 +121,9 @@
   .hint {
     font-size: 13px;
     color: var(--text-sub);
-    margin-top: 20px;
+    margin-top: 25px;
     text-align: center;
-    border-top: 1px dashed #eee;
+    border-top: 1px dashed var(--card-border);
     padding-top: 20px;
   }
 
@@ -108,10 +132,11 @@
     margin-bottom: 20px;
   }
   .list-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-sub);
     margin-bottom: 10px;
+    letter-spacing: 1px;
   }
   ul {
     list-style: none;
@@ -139,46 +164,48 @@
     padding: 15px;
     background: var(--primary-light);
     border-radius: 12px;
+    border: 1px solid #E5DFFF;
   }
 
   /* 科学文献区 */
   .reference {
     font-size: 11px;
-    color: #999;
+    color: #A0A0A0;
     margin-top: 25px;
     padding-top: 15px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--card-border);
     word-break: break-all;
+    line-height: 1.6;
   }
 
-  /* --- 🌟 跳转按钮样式 🌟 --- */
+  /* --- 跳转按钮样式 --- */
   .action-btn {
     display: inline-block;
     padding: 12px 35px;
     background: var(--primary);
     color: white;
     text-decoration: none;
-    border-radius: 25px;
+    border-radius: 50px; /* 药丸形 */
     font-weight: bold;
     font-size: 15px;
-    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    box-shadow: 0 6px 15px rgba(140, 122, 255, 0.25);
     transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
   }
   .action-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.2);
+    box-shadow: 0 2px 8px rgba(140, 122, 255, 0.2);
   }
   .btn-container {
     text-align: center; 
     margin-top: 30px;
-    border-top: 1px dashed #eee;
+    border-top: 1px dashed var(--card-border);
     padding-top: 20px;
   }
 
   /* 尾页特殊样式 */
   .ending {
     text-align: center;
-    padding: 80px 25px;
+    padding: 70px 25px;
     background: var(--card-bg);
   }
   .ending p { font-size: 16px; margin-bottom: 30px; }
@@ -194,6 +221,12 @@
 </style>
 </head>
 <body>
+
+<!-- 新增的营业灯牌 -->
+<div class="shop-header">
+  <div class="dot"></div>
+  <span>营业中 · 欢迎光临</span>
+</div>
 
 <div class="container">
 
@@ -255,7 +288,6 @@
     <p><b>交互体验：</b>文字化作圆角方块。支持指尖滑动多选，伴随轻柔的物理下压感与微小水滴音效，极具解压感。</p>
     <p><b>核心玩法：</b>智能剔除标点干扰，选词自动编号排队，一键复制，即刻生成纸质复习索引。</p>
     
-    <!-- 跳转按钮：点点 -->
     <div class="btn-container">
         <a href="diandian.html" class="action-btn">🫧 立即体验「点点」</a>
     </div>
@@ -268,7 +300,6 @@
     <p><b>交互体验：</b>长文自动按句式切片，保持语境完整。指尖轻触，生词瞬间高亮。</p>
     <p><b>核心玩法：</b>独有翻译合并算法，将外部翻译结果一键排版，无缝传输至后面的聪明蛋。</p>
     
-    <!-- 跳转按钮：选选（原文件名叫 ocr.html） -->
     <div class="btn-container">
         <a href="ocr.html" class="action-btn">🪄 立即体验「选选」</a>
     </div>
@@ -281,7 +312,6 @@
     <p><b>交互体验：</b>淡入浮现的翻卡动画，配合打字、选择与连连看三大测试模式。</p>
     <p><b>核心玩法：</b>自定义生词库，接收前面的词汇，通过反复抽卡与测试，建立初步印象并自动收集错题。</p>
     
-    <!-- 跳转按钮：聪明蛋 -->
     <div class="btn-container">
         <a href="smart.html" class="action-btn">🥚 立即体验「聪明蛋」</a>
     </div>
