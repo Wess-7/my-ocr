@@ -10,7 +10,6 @@
     --primary-light: #f0edff;
     --bg: #f0f2f5;
     --text-main: #2d3436;
-    --text-sub: #636e72;
   }
   * { box-sizing: border-box; }
   body { 
@@ -28,14 +27,7 @@
     margin-bottom: 15px; 
     box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
   }
-  h3 { 
-    margin-top: 0; 
-    font-size: 16px; 
-    color: var(--primary); 
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  h3 { margin-top: 0; font-size: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
   textarea { 
     width: 100%; 
     height: 120px; 
@@ -43,82 +35,43 @@
     border-radius: 12px; 
     padding: 12px; 
     font-size: 14px; 
-    font-family: inherit;
     outline: none; 
     resize: none;
-    transition: border-color 0.3s;
     line-height: 1.5;
   }
   textarea:focus { border-color: var(--primary); }
-  
   .btn { 
-    width: 100%; 
-    padding: 14px; 
-    background: var(--primary); 
-    color: white; 
-    border: none; 
-    border-radius: 25px; 
-    font-size: 16px; 
-    font-weight: bold; 
-    margin-top: 15px; 
-    cursor: pointer; 
-    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-    transition: transform 0.1s;
+    width: 100%; padding: 14px; background: var(--primary); color: white; border: none; 
+    border-radius: 25px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; 
   }
   .btn:active { transform: scale(0.96); }
-  .btn-copy { background: #00b894; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3); }
+  .btn-copy { background: #00b894; }
   
-  /* 句子阅读区 */
-  #readingArea { display: none; max-height: 40vh; overflow-y: auto; padding-right: 5px; }
-  .sentence-row { 
-    margin-bottom: 12px; 
-    line-height: 1.8; 
-    font-size: 15px;
-    padding: 8px;
-    border-radius: 8px;
-    background: #fafafa;
-  }
+  #readingArea { display: none; max-height: 45vh; overflow-y: auto; padding-right: 5px; background: #fafafa; border-radius: 8px; padding: 10px;}
+  .sentence-row { margin-bottom: 12px; line-height: 2; font-size: 15px; }
   .sentence-num { 
-    color: var(--primary); 
-    font-weight: bold; 
-    font-size: 13px; 
-    margin-right: 6px; 
-    background: var(--primary-light);
-    padding: 2px 6px;
-    border-radius: 6px;
-    display: inline-block;
+    color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; 
+    background: var(--primary-light); padding: 2px 6px; border-radius: 6px; 
   }
-  /* 单词点击块 */
   .clickable-word { 
-    cursor: pointer; 
-    padding: 2px 4px; 
-    border-radius: 4px; 
-    transition: all 0.2s;
-    display: inline-block;
+    cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block;
   }
   .clickable-word.selected { 
-    background: var(--primary); 
-    color: white; 
-    font-weight: bold; 
-    box-shadow: 0 2px 5px rgba(108, 92, 231, 0.4);
+    background: var(--primary); color: white; font-weight: bold; 
   }
-
-  /* 底部汇总区 */
   #resultArea { display: none; position: sticky; bottom: 0; z-index: 10; border-top: 2px dashed #eee;}
-  .hint { font-size: 13px; color: var(--text-sub); margin-bottom: 5px; }
 </style>
 </head>
 <body>
 
 <div class="card">
   <h3><span>📋</span> 1. 粘贴英文原文</h3>
-  <textarea id="inputText" placeholder="把提取出来的英文阅读理解文章粘贴到这里..."></textarea>
-  <button class="btn" onclick="processText()">🔍 生成带编号的句子</button>
+  <textarea id="inputText" placeholder="把提取出来的英文粘贴到这里..."></textarea>
+  <button class="btn" onclick="processText()">🔍 生成语境选词</button>
 </div>
 
 <div class="card" id="readingBox" style="display:none;">
   <h3><span>👆</span> 2. 在句子里直接点单词</h3>
-  <div class="hint">直接戳你看不懂的单词，戳中变紫</div>
   <div id="readingArea"></div>
 </div>
 
@@ -129,16 +82,14 @@
 </div>
 
 <script>
-// 用 Set 存储选中的词，保证不重复
 let selectedWords = new Set();
 
 function processText() {
   const text = document.getElementById('inputText').value;
   if (!text.trim()) { alert('请先粘贴文字哦！'); return; }
 
-  // 按换行符和常见标点符号(,.?!;:)切分句子
-  // 正则说明：匹配换行符，或者以 .?! 结尾的句子（保留标点）
-  const rawSentences = text.match(/[^.!?\n]+[.!?]?/g) || [];
+  // 1. 简单粗暴地切分：只要有换行，或者有 . ! ? 就算一句
+  const rawSentences = text.split(/[\n]+|(?<=[.!?])\s+/);
   
   const readingArea = document.getElementById('readingArea');
   readingArea.innerHTML = '';
@@ -146,49 +97,42 @@ function processText() {
   updateOutput();
 
   let sentenceIndex = 1;
+  let hasContent = false;
 
   rawSentences.forEach(sentence => {
     const trimmed = sentence.trim();
-    // 如果句子全是标点或者空格，跳过
-    if (trimmed.length < 2 || !/[a-zA-Z]/.test(trimmed)) return;
+    // 过滤掉空格、纯数字或没英文字母的行
+    if (trimmed.length === 0 || !/[a-zA-Z]/.test(trimmed)) return;
 
-    // 创建句子容器
+    hasContent = true;
     const row = document.createElement('div');
     row.className = 'sentence-row';
     
-    // 编号
     const numSpan = document.createElement('span');
     numSpan.className = 'sentence-num';
     numSpan.textContent = sentenceIndex + '.';
     row.appendChild(numSpan);
 
-    // 拆分句子里的单词和非单词部分（保留空格和标点）
-    // 用正则捕获英文单词 `[a-zA-Z]+` 或者 其它字符 `[^a-zA-Z]+`
+    // 把句子拆成 [英文字母] 和 [其他字符(标点/空格)]
     const tokens = trimmed.match(/[a-zA-Z]+|[^a-zA-Z]+/g) || [];
 
     tokens.forEach(token => {
-      if (/[a-zA-Z]/.test(token)) {
-        // 是英文单词
+      if (/^[a-zA-Z]+$/.test(token)) {
         const wordSpan = document.createElement('span');
         wordSpan.className = 'clickable-word';
         wordSpan.textContent = token;
         const lowerWord = token.toLowerCase();
 
-        // 检查之前是否已经全局选中过这个词（比如同一个词在不同句子出现）
-        if (selectedWords.has(lowerWord)) {
-          wordSpan.classList.add('selected');
-        }
+        if (selectedWords.has(lowerWord)) wordSpan.classList.add('selected');
 
         wordSpan.onclick = function() {
           if (selectedWords.has(lowerWord)) {
             selectedWords.delete(lowerWord);
-            // 把所有同款词取消高亮
             document.querySelectorAll(`.clickable-word`).forEach(el => {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.remove('selected');
             });
           } else {
             selectedWords.add(lowerWord);
-            // 把所有同款词高亮
             document.querySelectorAll(`.clickable-word`).forEach(el => {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.add('selected');
             });
@@ -197,7 +141,6 @@ function processText() {
         };
         row.appendChild(wordSpan);
       } else {
-        // 是空格、标点、数字，直接用文本节点加进去
         row.appendChild(document.createTextNode(token));
       }
     });
@@ -206,10 +149,14 @@ function processText() {
     sentenceIndex++;
   });
 
-  document.getElementById('readingBox').style.display = 'block';
-  if(sentenceIndex > 1) {
-    document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
+  if (!hasContent) {
+    alert('好像没有识别到英文单词，请检查粘贴的内容哦！');
+    return;
   }
+
+  document.getElementById('readingBox').style.display = 'block';
+  document.getElementById('readingArea').style.display = 'block';
+  document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
 }
 
 function updateOutput() {
@@ -232,10 +179,8 @@ function updateOutput() {
 function copyResult() {
   const outputText = document.getElementById('outputText');
   if (!outputText.value) return;
-  
   outputText.select();
   outputText.setSelectionRange(0, 99999);
-  
   try {
     document.execCommand('copy');
     alert('✅ 复制成功！快去抽卡机里粘贴吧！');
