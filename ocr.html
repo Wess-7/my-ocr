@@ -40,7 +40,7 @@
     white-space: pre-wrap; 
     word-wrap: break-word; 
     word-break: normal;
-    height: 80px; /* 调整一下高度 */
+    height: 80px;
     font-weight: bold;
     color: #2d3436;
     margin-bottom: 5px;
@@ -65,24 +65,24 @@
 <div class="card" id="resultArea">
   <h3><span>📤</span> 3. 生成结果</h3>
   
-  <h4>纯单词列表（用减号隔开）</h4>
-  <div class="hint">长按全选复制到抽卡机</div>
-  <textarea id="finalOutput" class="result-textarea" readonly placeholder="这里会生成用减号隔开的生词..."></textarea>
+  <h4>减号版（直接进抽卡机）</h4>
+  <textarea id="finalOutput" class="result-textarea" readonly></textarea>
 
-  <h4>词频统计（附带出现次数）</h4>
-  <div class="hint">看看哪些词是文章里的高频词</div>
-  <textarea id="freqOutput" class="result-textarea" readonly placeholder="这里会显示单词在文中出现的次数..."></textarea>
+  <h4>换行版（扔进手机翻译软件，它会一行对一行翻译）</h4>
+  <textarea id="newlineOutput" class="result-textarea" readonly></textarea>
+
+  <h4>词频统计</h4>
+  <textarea id="freqOutput" class="result-textarea" readonly></textarea>
 </div>
 
 <script>
 let selectedWords = new Set();
-let wordFrequency = {}; // 记录文中所有词的词频
+let wordFrequency = {};
 
 function processText() {
   const text = document.getElementById('inputText').value;
   if (!text.trim()) { alert('请先粘贴文字哦！'); return; }
 
-  // 先统计全文的词频
   wordFrequency = {};
   const allMatches = text.match(/[a-zA-Z]+/g) || [];
   allMatches.forEach(w => {
@@ -161,17 +161,18 @@ function generateFinal() {
 
   const selectedArray = Array.from(selectedWords);
   
-  // 1. 生成纯单词列表
-  const pureString = selectedArray.join(' - ');
-  document.getElementById('finalOutput').value = pureString;
+  // 减号版
+  document.getElementById('finalOutput').value = selectedArray.join(' - ');
 
-  // 2. 生成带词频的列表
+  // 换行版（专门用来复制去翻译的）
+  document.getElementById('newlineOutput').value = selectedArray.join('\n');
+
+  // 词频版
   const freqArray = selectedArray.map(word => {
     const count = wordFrequency[word] || 1;
     return `${word}(${count}次)`;
   });
-  const freqString = freqArray.join(' - ');
-  document.getElementById('freqOutput').value = freqString;
+  document.getElementById('freqOutput').value = freqArray.join(' - ');
   
   const resultArea = document.getElementById('resultArea');
   resultArea.style.display = 'block';
