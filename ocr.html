@@ -16,7 +16,7 @@
 <div id="status"></div>
 <div id="output"></div>
 
-<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://fastly.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 document.getElementById('fileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
@@ -30,6 +30,9 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
   
   try {
     const worker = await Tesseract.createWorker('eng', 1, {
+      workerPath: 'https://fastly.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+      corePath: 'https://fastly.jsdelivr.net/npm/tesseract.js-core@5',
+      langPath: 'https://fastly.jsdelivr.net/npm/@tesseract.js-data/eng',
       logger: m => {
         if (m.status === 'loading tesseract core') statusEl.innerText = '正在加载核心...';
         else if (m.status === 'loading language traineddata') statusEl.innerText = `正在下载语言包... ${Math.round(m.progress * 100)}%`;
@@ -42,7 +45,7 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
     outputEl.innerText = result.data.text;
     await worker.terminate();
   } catch (err) {
-    statusEl.innerText = '❌ 出错了，可能是网络问题';
+    statusEl.innerText = '❌ 出错了，请确认使用的是 Chrome 浏览器';
     outputEl.innerText = '错误信息：' + err.message;
   }
 });
