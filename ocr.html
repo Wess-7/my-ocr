@@ -32,18 +32,20 @@
   
   #resultArea { display: none; border: 2px dashed #00b894; background: #e8f8f5; }
   #resultArea h3 { color: #00b894; }
+  #resultArea h4 { color: #00b894; margin-bottom: 5px; margin-top: 15px; font-size: 14px;}
   
-  /* 保证长单词不被随意切断，但能正常换行 */
-  #finalOutput { 
+  .result-textarea { 
     border-color: #00b894; 
     background: white;
     white-space: pre-wrap; 
     word-wrap: break-word; 
     word-break: normal;
-    height: 150px;
+    height: 80px; /* 调整一下高度 */
     font-weight: bold;
     color: #2d3436;
+    margin-bottom: 5px;
   }
+  .hint { font-size: 12px; color: #888; margin-bottom: 5px; }
 </style>
 </head>
 <body>
@@ -60,18 +62,33 @@
   <button class="btn btn-generate" onclick="generateFinal()">✨ 一键生成</button>
 </div>
 
-<!-- 单独的结果板块 -->
 <div class="card" id="resultArea">
-  <h3><span>📤</span> 3. 生成结果（长按框内文字即可复制）</h3>
-  <textarea id="finalOutput" readonly placeholder="这里会生成用减号隔开的生词..."></textarea>
+  <h3><span>📤</span> 3. 生成结果</h3>
+  
+  <h4>纯单词列表（用减号隔开）</h4>
+  <div class="hint">长按全选复制到抽卡机</div>
+  <textarea id="finalOutput" class="result-textarea" readonly placeholder="这里会生成用减号隔开的生词..."></textarea>
+
+  <h4>词频统计（附带出现次数）</h4>
+  <div class="hint">看看哪些词是文章里的高频词</div>
+  <textarea id="freqOutput" class="result-textarea" readonly placeholder="这里会显示单词在文中出现的次数..."></textarea>
 </div>
 
 <script>
 let selectedWords = new Set();
+let wordFrequency = {}; // 记录文中所有词的词频
 
 function processText() {
   const text = document.getElementById('inputText').value;
   if (!text.trim()) { alert('请先粘贴文字哦！'); return; }
+
+  // 先统计全文的词频
+  wordFrequency = {};
+  const allMatches = text.match(/[a-zA-Z]+/g) || [];
+  allMatches.forEach(w => {
+    const lower = w.toLowerCase();
+    wordFrequency[lower] = (wordFrequency[lower] || 0) + 1;
+  });
 
   const rawSentences = text.split(/[\n]+|(?<=[.!?])\s+/);
   const readingArea = document.getElementById('readingArea');
@@ -136,23 +153,28 @@ function processText() {
   document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
 }
 
-// 一键生成
 function generateFinal() {
   if (selectedWords.size === 0) {
     alert('你还没选单词呢！先在句子里戳几个吧~');
     return;
   }
 
-  // 把 Set 转成数组，用 " - " 连起来
-  const resultString = Array.from(selectedWords).join(' - ');
+  const selectedArray = Array.from(selectedWords);
+  
+  // 1. 生成纯单词列表
+  const pureString = selectedArray.join(' - ');
+  document.getElementById('finalOutput').value = pureString;
+
+  // 2. 生成带词频的列表
+  const freqArray = selectedArray.map(word => {
+    const count = wordFrequency[word] || 1;
+    return `${word}(${count}次)`;
+  });
+  const freqString = freqArray.join(' - ');
+  document.getElementById('freqOutput').value = freqString;
   
   const resultArea = document.getElementById('resultArea');
-  const finalOutput = document.getElementById('finalOutput');
-  
-  finalOutput.value = resultString;
   resultArea.style.display = 'block';
-  
-  // 自动滚到结果区
   resultArea.scrollIntoView({ behavior: 'smooth' });
 }
 </script>
