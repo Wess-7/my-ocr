@@ -11,17 +11,20 @@
     --bg: #f0f2f5;
     --text-main: #2d3436;
     --border: #eee;
+    --success: #00b894;
   }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text-main); padding-bottom: 40px; }
   .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
   h3 { margin-top: 0; font-size: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-  textarea { width: 100%; height: 120px; border: 2px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; outline: none; resize: none; line-height: 1.5; }
+  textarea { width: 100%; height: 100px; border: 2px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; outline: none; resize: none; line-height: 1.5; }
   textarea:focus { border-color: var(--primary); }
   
   .btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); transition: transform 0.1s; }
   .btn:active { transform: scale(0.96); }
   .btn-generate { background: #ff9f43; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3); margin-top: 10px; }
+  .btn-merge { background: #0984e3; box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3); margin-top: 10px; }
+  .btn-copy { background: var(--success); box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3); margin-top: 10px; }
   
   #readingArea { display: none; max-height: 40vh; overflow-y: auto; padding-right: 5px; background: #fafafa; border-radius: 8px; padding: 10px;}
   .sentence-row { margin-bottom: 12px; line-height: 2; font-size: 15px; }
@@ -46,6 +49,11 @@
     margin-bottom: 5px;
   }
   .hint { font-size: 12px; color: #888; margin-bottom: 5px; }
+
+  /* 翻译合并专用样式 */
+  .merge-container { display: flex; gap: 10px; margin-top: 10px; }
+  .merge-box { flex: 1; }
+  .merge-box label { font-size: 12px; font-weight: bold; color: var(--text-main); margin-bottom: 5px; display: block; }
 </style>
 </head>
 <body>
@@ -65,14 +73,41 @@
 <div class="card" id="resultArea">
   <h3><span>📤</span> 3. 生成结果</h3>
   
-  <h4>减号版（直接进抽卡机）</h4>
+  <h4>减号版（复制去手机翻译软件）</h4>
   <textarea id="finalOutput" class="result-textarea" readonly></textarea>
 
-  <h4>换行版（扔进手机翻译软件，它会一行对一行翻译）</h4>
+  <h4>换行版（备用）</h4>
   <textarea id="newlineOutput" class="result-textarea" readonly></textarea>
 
   <h4>词频统计</h4>
   <textarea id="freqOutput" class="result-textarea" readonly></textarea>
+</div>
+
+<!-- 新加的翻译合并区 -->
+<div class="card">
+  <h3><span>🔗</span> 4. 翻译合并（最终步）</h3>
+  <div class="hint" style="margin-bottom:10px;">把手机翻译出来的中文，和上方的英文分别粘在下面，点合并！</div>
+  
+  <div class="merge-container">
+    <div class="merge-box">
+      <label>英文（减号版）</label>
+      <textarea id="mergeEn" placeholder="apple - banana - cat"></textarea>
+    </div>
+    <div class="merge-box">
+      <label>中文（翻译结果）</label>
+      <textarea id="mergeCn" placeholder="苹果 - 香蕉 - 猫"></textarea>
+    </div>
+  </div>
+
+  <button class="btn btn-merge" onclick="mergeTranslations()">🔗 合并生成最终格式</button>
+
+  <div style="margin-top:15px;">
+    <h4 style="color:var(--primary); margin-bottom:5px; font-size:14px;">最终结果（一行一个，直接去抽卡机）</h4>
+    <textarea id="mergeOutput" class="result-textarea" style="border-color:var(--primary); height:100px;" readonly placeholder="这里会生成 apple - 苹果..."></textarea>
+    
+    <!-- 新加的复制按钮 -->
+    <button class="btn btn-copy" onclick="copyMergeResult()">📋 一键复制最终结果</button>
+  </div>
 </div>
 
 <script>
@@ -162,9 +197,12 @@ function generateFinal() {
   const selectedArray = Array.from(selectedWords);
   
   // 减号版
-  document.getElementById('finalOutput').value = selectedArray.join(' - ');
+  const pureString = selectedArray.join(' - ');
+  document.getElementById('finalOutput').value = pureString;
+  // 顺便填到下面的合并框里，方便你
+  document.getElementById('mergeEn').value = pureString;
 
-  // 换行版（专门用来复制去翻译的）
+  // 换行版
   document.getElementById('newlineOutput').value = selectedArray.join('\n');
 
   // 词频版
@@ -177,6 +215,53 @@ function generateFinal() {
   const resultArea = document.getElementById('resultArea');
   resultArea.style.display = 'block';
   resultArea.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 合并翻译
+function mergeTranslations() {
+  const enStr = document.getElementById('mergeEn').value;
+  const cnStr = document.getElementById('mergeCn').value;
+
+  if (!enStr || !cnStr) {
+    alert("请把英文和中文都放进去哦！");
+    return;
+  }
+
+  // 智能拆分：不管它是用减号、破折号、逗号，还是空格隔开的，统统切开
+  const enArr = enStr.split(/[-—，,]/).map(s => s.trim()).filter(Boolean);
+  const cnArr = cnStr.split(/[-—，,]/).map(s => s.trim()).filter(Boolean);
+
+  let resultLines = [];
+  let maxLen = Math.max(enArr.length, cnArr.length);
+
+  for (let i = 0; i < maxLen; i++) {
+    let en = enArr[i] || "";
+    let cn = cnArr[i] || "";
+    if (en || cn) {
+      resultLines.push(`${en} - ${cn}`);
+    }
+  }
+
+  document.getElementById('mergeOutput').value = resultLines.join('\n');
+}
+
+// 一键复制最终结果
+function copyMergeResult() {
+  const output = document.getElementById('mergeOutput');
+  if (!output.value) {
+    alert("还没有生成内容哦！");
+    return;
+  }
+  
+  output.select();
+  output.setSelectionRange(0, 99999);
+  
+  try {
+    document.execCommand('copy');
+    alert('✅ 复制成功！快去抽卡机里粘贴吧！');
+  } catch (err) {
+    alert('复制失败，请手动长按文本框全选复制~');
+  }
 }
 </script>
 </body>
