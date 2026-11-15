@@ -6,11 +6,11 @@
 <title>🥚 聪明蛋专属抽卡机</title>
 <style>
   :root {
-    --primary-color: #8C7AFF; /* 香芋紫 */
+    --primary-color: #8C7AFF;
     --secondary-color: #B4A7FF;
-    --bg-color: #FDFCF8; /* 奶油米白 */
+    --bg-color: #FDFCF8;
     --card-bg: #FFFFFF;
-    --border: #EBE6DF; /* 暖灰边框 */
+    --border: #EBE6DF;
     --text-main: #4A4A4A;
     --text-sub: #8E8E8E;
     --danger-color: #FF6B6B;
@@ -49,7 +49,6 @@
   .btn-add-group { background: #00B894; } .btn-rename-group { background: #FDCB6E; color: #333; } .btn-del-group { background: #FF7675; } .btn-view-list { background: var(--primary-color); grid-column: span 2; } .btn-smart-import { background: var(--secondary-color); grid-column: span 2; }
   
   .btn-reset-lang { background: #FFF0F0; color: var(--danger-color); border: 2px dashed var(--danger-color); width: 100%; padding: 12px; margin-top: 20px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; transition: .3s; }
-  .btn-reset-lang:hover { background: var(--danger-color); color: #fff; }
   
   #cardPanel { display: flex; flex-direction: column; align-items: center; width: 100%; }
   .card-container { width: 300px; height: 200px; margin-bottom: 25px; position: relative; z-index: 1; }
@@ -325,21 +324,22 @@
       <span class="modal-close" onclick="closeReviewModal()">✖</span>
     </div>
     <div class="review-body">
-      <div class="review-section-title">目标语选母语错题</div>
+      <div class="review-section-title">选择题错题 / 连连看错题</div>
       <div class="review-tools">
         批量选 <input type="number" id="batchNumC" value="10" min="1"> 个
         <button onclick="batchSelect('choice','batchNumC')">确定</button>
         <button onclick="selectAll('choice')">全选</button>
       </div>
       <div class="review-list" id="reviewListChoice"></div>
-      <div class="review-section-title">母语选目标语错题</div>
+      
+      <div class="review-section-title">打字题错题</div>
       <div class="review-tools">
         批量选 <input type="number" id="batchNumT" value="10" min="1"> 个
         <button onclick="batchSelect('typing','batchNumT')">确定</button>
         <button onclick="selectAll('typing')">全选</button>
       </div>
       <div class="review-list" id="reviewListTyping"></div>
-      <button class="btn-draw" style="width:100%;" onclick="startReview()">🚀 开始复习</button>
+      <button class="btn-draw" style="width:100%;" onclick="startReview()">🚀 开始复习 (连连看模式)</button>
     </div>
   </div>
 </div>
@@ -1284,6 +1284,7 @@ function saveToMistakeBook(){
 
   safeSet("wordErrorCounts" + currentLangKey, wordErrorCounts);
 
+  // 错题本依旧按原来的模式记录
   const newRecord = {
     id: Date.now(),
     time: timeString,
@@ -1367,9 +1368,11 @@ function openReviewModal(){
   reviewTypingList = [];
   const seenChoice = new Set();
   const seenTyping = new Set();
+  
   mistakeBook.forEach(record => {
     record.wrongs.forEach(w => {
-      if(record.mode === '母语译目标语' && !seenChoice.has(w.ko)){
+      // 修复：兼容错题本里的所有模式（包括连连看）
+      if((record.mode === '母语译目标语' || record.mode === '连连看') && !seenChoice.has(w.ko)){
         reviewChoiceList.push(w);
         seenChoice.add(w.ko);
       } else if(record.mode === '目标语译母语' && !seenTyping.has(w.ko)){
@@ -1414,6 +1417,7 @@ function selectAll(type){
   document.querySelectorAll(className).forEach(cb => cb.checked = true);
 }
 
+// 🌟 核心修改：错题复习强制启动连连看模式
 function startReview(){
   const pool = [];
   const seen = new Set();
@@ -1427,8 +1431,9 @@ function startReview(){
   });
   if(pool.length === 0) return alert("请至少勾选一个错题进行复习！");
 
-  currentTestMode = 'typing';
-  document.getElementById('modeTyping').checked = true;
+  // 强制设为连连看模式
+  currentTestMode = 'matching';
+  
   currentTestPool = [...pool];
   testDeck = shuffleArray([...pool]);
   testTotalCount = testDeck.length;
@@ -1440,11 +1445,15 @@ function startReview(){
   closeReviewModal();
   document.getElementById('testSetupBox').style.display = 'none';
   document.getElementById('resultPanel').style.display = 'none';
-  document.getElementById('quizArea').style.display = 'block';
-  document.getElementById('matchingArea').style.display = 'none';
+  
+  // 隐藏普通题，显示连连看区域
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('matchingArea').style.display = 'block';
   document.getElementById('singleQuizCard').style.display = 'block';
   document.getElementById('btnSaveMistake').style.display = 'none';
-  nextQuiz();
+  
+  // 启动连连看引擎
+  initMatchingGame();
 }
 </script>
 </body>
