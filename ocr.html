@@ -4,26 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>生词OCR</title>
+<style>
+  body { padding: 20px; font-family: sans-serif; }
+  #status { color: #6c5ce7; margin: 15px 0; font-weight: bold; }
+  #output { white-space: pre-wrap; margin-top: 20px; line-height: 1.6; font-size: 16px; }
+</style>
 </head>
 <body>
 <h3>从相册选图</h3>
 <input type="file" accept="image/*" id="fileInput">
-<div id="output" style="white-space:pre-wrap; margin-top:20px;"></div>
+<div id="status"></div>
+<div id="output"></div>
 
-<script type="module">
-import { PaddleOCR } from "https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/+esm";
-
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
 document.getElementById('fileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  document.getElementById('output').innerText = '识别中，请稍等...';
+  
+  const statusEl = document.getElementById('status');
+  const outputEl = document.getElementById('output');
+  
+  statusEl.innerText = '正在准备引擎，请稍候...（第一次会慢一点）';
+  outputEl.innerText = '';
+  
   try {
-    const ocr = await PaddleOCR.create({ lang: "en", ocrVersion: "PP-OCRv6" });
-    const [result] = await ocr.predict(file);
-    const lines = result.items.map(item => item.text).join('\n');
-    document.getElementById('output').innerText = lines;
+    const worker = await Tesseract.createWorker('eng', 1, {
+      logger: m => {
+        if (m.status === 'loading tesseract core') statusEl.innerText = '正在加载核心...';
+        else if (m.status === 'loading language traineddata') statusEl.innerText = `正在下载语言包... ${Math.round(m.progress * 100)}%`;
+        else if (m.status === 'recognizing text') statusEl.innerText = `正在识别文字... ${Math.round(m.progress * 100)}%`;
+      }
+    });
+    
+    const result = await worker.recognize(file);
+    statusEl.innerText = '✅ 识别完成！';
+    outputEl.innerText = result.data.text;
+    await worker.terminate();
   } catch (err) {
-    document.getElementById('output').innerText = '出错了：' + err.message;
+    statusEl.innerText = '❌ 出错了，可能是网络问题';
+    outputEl.innerText = '错误信息：' + err.message;
   }
 });
 </script>
