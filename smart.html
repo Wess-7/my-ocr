@@ -132,7 +132,7 @@
   .review-tools { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; font-size: 13px;}
   .review-tools input { width: 60px; padding: 5px; border: 1px solid var(--border); border-radius: 6px; text-align: center; background: #FAFAFA;}
   .review-tools button { padding: 5px 12px; font-size: 12px; border-radius: 50px; background: var(--secondary-color); color: #fff; }
-  .review-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; max-height: 200px; overflow-y: auto; background: #FAFAFA; padding: 10px; border-radius: 12px; border: 1px solid var(--border);}
+  .review-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; background: #FAFAFA; padding: 10px; border-radius: 12px; border: 1px solid var(--border);}
   .review-item { display: flex; align-items: center; gap: 10px; font-size: 14px; }
   .review-item input { width: 16px; height: 16px; accent-color: var(--primary-color); }
   
@@ -317,6 +317,7 @@
   </div>
 </div>
 
+<!-- 错题复习弹窗（已合并为一个列表） -->
 <div class="review-modal-overlay" id="reviewModal">
   <div class="review-modal-content">
     <div class="review-header">
@@ -324,21 +325,14 @@
       <span class="modal-close" onclick="closeReviewModal()">✖</span>
     </div>
     <div class="review-body">
-      <div class="review-section-title">选择题错题 / 连连看错题</div>
+      <div class="review-section-title">错题选择</div>
       <div class="review-tools">
-        批量选 <input type="number" id="batchNumC" value="10" min="1"> 个
-        <button onclick="batchSelect('choice','batchNumC')">确定</button>
-        <button onclick="selectAll('choice')">全选</button>
+        批量选 <input type="number" id="batchNumAll" value="10" min="1"> 个
+        <button onclick="batchSelect('all','batchNumAll')">确定</button>
+        <button onclick="selectAll('all')">全选</button>
       </div>
-      <div class="review-list" id="reviewListChoice"></div>
+      <div class="review-list" id="reviewListAll"></div>
       
-      <div class="review-section-title">打字题错题</div>
-      <div class="review-tools">
-        批量选 <input type="number" id="batchNumT" value="10" min="1"> 个
-        <button onclick="batchSelect('typing','batchNumT')">确定</button>
-        <button onclick="selectAll('typing')">全选</button>
-      </div>
-      <div class="review-list" id="reviewListTyping"></div>
       <button class="btn-draw" style="width:100%;" onclick="startReview()">🚀 开始复习 (连连看模式)</button>
     </div>
   </div>
@@ -475,8 +469,7 @@ let matchingMatchedCount = 0;
 let matchingWrongPairs = new Set();
 let matchingRoundTotal = 0;
 let matchingRoundCorrect = 0;
-let reviewChoiceList = [];
-let reviewTypingList = [];
+let reviewAllList = []; // 合并后的总错题列表
 let audioCtx = null;
 
 const cardElement = document.getElementById('flipCard');
@@ -1284,7 +1277,6 @@ function saveToMistakeBook(){
 
   safeSet("wordErrorCounts" + currentLangKey, wordErrorCounts);
 
-  // 错题本依旧按原来的模式记录
   const newRecord = {
     id: Date.now(),
     time: timeString,
@@ -1363,24 +1355,20 @@ function clearMistakeBook(){
   }
 }
 
+// 合并所有错题到一个列表中
 function openReviewModal(){
-  reviewChoiceList = [];
-  reviewTypingList = [];
-  const seenChoice = new Set();
-  const seenTyping = new Set();
+  reviewAllList = [];
+  const seen = new Set();
   
   mistakeBook.forEach(record => {
     record.wrongs.forEach(w => {
-      // 修复：兼容错题本里的所有模式（包括连连看）
-      if((record.mode === '母语译目标语' || record.mode === '连连看') && !seenChoice.has(w.ko)){
-        reviewChoiceList.push(w);
-        seenChoice.add(w.ko);
-      } else if(record.mode === '目标语译母语' && !seenTyping.has(w.ko)){
-        reviewTypingList.push(w);
-        seenTyping.add(w.ko);
+      if(!seen.has(w.ko)){
+        reviewAllList.push(w);
+        seen.add(w.ko);
       }
     });
   });
+  
   renderReviewLists();
   document.getElementById('reviewModal').style.display = 'flex';
 }
@@ -1388,23 +1376,17 @@ function openReviewModal(){
 function closeReviewModal(){ document.getElementById('reviewModal').style.display = 'none'; }
 
 function renderReviewLists(){
-  const listC = document.getElementById('reviewListChoice');
-  const listT = document.getElementById('reviewListTyping');
-  listC.innerHTML = reviewChoiceList.length === 0 ? '<div style="color:#999;font-size:13px;">暂无错题</div>' : '';
-  reviewChoiceList.forEach((w, i) => {
-    listC.innerHTML += `<label class="review-item"><input type="checkbox" class="cb-choice" value="${i}"> ${escapeHtml(w.ko)} - ${escapeHtml(w.cn)}</label>`;
-  });
-  listT.innerHTML = reviewTypingList.length === 0 ? '<div style="color:#999;font-size:13px;">暂无错题</div>' : '';
-  reviewTypingList.forEach((w, i) => {
-    listT.innerHTML += `<label class="review-item"><input type="checkbox" class="cb-typing" value="${i}"> ${escapeHtml(w.ko)} - ${escapeHtml(w.cn)}</label>`;
+  const listAll = document.getElementById('reviewListAll');
+  listAll.innerHTML = reviewAllList.length === 0 ? '<div style="color:#999;font-size:13px;">暂无错题</div>' : '';
+  reviewAllList.forEach((w, i) => {
+    listAll.innerHTML += `<label class="review-item"><input type="checkbox" class="cb-all" value="${i}"> ${escapeHtml(w.ko)} - ${escapeHtml(w.cn)}</label>`;
   });
 }
 
 function batchSelect(type, inputId){
   const num = parseInt(document.getElementById(inputId).value);
   if(isNaN(num) || num <= 0) return;
-  const className = type === 'choice' ? '.cb-choice' : '.cb-typing';
-  const checkboxes = document.querySelectorAll(className);
+  const checkboxes = document.querySelectorAll('.cb-all');
   let count = 0;
   checkboxes.forEach(cb => {
     if(count < num){ cb.checked = true; count++; }
@@ -1413,27 +1395,20 @@ function batchSelect(type, inputId){
 }
 
 function selectAll(type){
-  const className = type === 'choice' ? '.cb-choice' : '.cb-typing';
-  document.querySelectorAll(className).forEach(cb => cb.checked = true);
+  document.querySelectorAll('.cb-all').forEach(cb => cb.checked = true);
 }
 
-// 🌟 核心修改：错题复习强制启动连连看模式
+// 错题复习强制启动连连看模式
 function startReview(){
   const pool = [];
   const seen = new Set();
-  document.querySelectorAll('.cb-choice:checked').forEach(cb => {
-    const w = reviewChoiceList[cb.value];
-    if(w && !seen.has(w.ko)){ pool.push(w); seen.add(w.ko); }
-  });
-  document.querySelectorAll('.cb-typing:checked').forEach(cb => {
-    const w = reviewTypingList[cb.value];
+  document.querySelectorAll('.cb-all:checked').forEach(cb => {
+    const w = reviewAllList[cb.value];
     if(w && !seen.has(w.ko)){ pool.push(w); seen.add(w.ko); }
   });
   if(pool.length === 0) return alert("请至少勾选一个错题进行复习！");
 
-  // 强制设为连连看模式
   currentTestMode = 'matching';
-  
   currentTestPool = [...pool];
   testDeck = shuffleArray([...pool]);
   testTotalCount = testDeck.length;
@@ -1446,13 +1421,11 @@ function startReview(){
   document.getElementById('testSetupBox').style.display = 'none';
   document.getElementById('resultPanel').style.display = 'none';
   
-  // 隐藏普通题，显示连连看区域
   document.getElementById('quizArea').style.display = 'none';
   document.getElementById('matchingArea').style.display = 'block';
   document.getElementById('singleQuizCard').style.display = 'block';
   document.getElementById('btnSaveMistake').style.display = 'none';
   
-  // 启动连连看引擎
   initMatchingGame();
 }
 </script>
