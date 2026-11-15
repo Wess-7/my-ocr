@@ -24,9 +24,10 @@
   #readingArea { display: none; max-height: 45vh; overflow-y: auto; padding-right: 5px; background: #fafafa; border-radius: 8px; padding: 10px;}
   .sentence-row { margin-bottom: 12px; line-height: 2; font-size: 15px; }
   .sentence-num { color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
+  
+  /* 点选词块的样式，不再有查询中状态，纯瞬间变色 */
   .clickable-word { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; }
   .clickable-word.selected { background: var(--primary); color: white; font-weight: bold; }
-  .clickable-word.translating { background: #ffeaa7; color: #d63031; } /* 正在查询的黄色高亮 */
   
   #resultArea { display: none; position: sticky; bottom: 0; z-index: 10; border-top: 2px dashed #eee;}
 </style>
@@ -45,14 +46,13 @@
 </div>
 
 <div class="card" id="resultArea">
-  <h3><span>📤</span> 3. 选好的生词（可直接修改）</h3>
-  <textarea id="outputText" style="height: 100px; border-color: #00b894;"></textarea>
+  <h3><span>📤</span> 3. 选好的生词</h3>
+  <textarea id="outputText" style="height: 120px; border-color: #00b894;" placeholder="这里会生成 word - 格式，复制去抽卡机里补中文就好！"></textarea>
   <button class="btn btn-copy" onclick="copyResult()">📋 一键复制</button>
 </div>
 
 <script>
 let selectedWords = new Set();
-let wordTranslations = {}; 
 
 function processText() {
   const text = document.getElementById('inputText').value;
@@ -62,7 +62,6 @@ function processText() {
   const readingArea = document.getElementById('readingArea');
   readingArea.innerHTML = '';
   selectedWords.clear();
-  wordTranslations = {};
   updateOutput();
 
   let sentenceIndex = 1;
@@ -103,10 +102,6 @@ function processText() {
             document.querySelectorAll(`.clickable-word`).forEach(el => {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.add('selected');
             });
-            // 如果没查过，或者查失败了，就再去查
-            if (!wordTranslations[lowerWord] || wordTranslations[lowerWord] === "[待填]") {
-              fetchTranslationJSONP(lowerWord, wordSpan);
-            }
           }
           updateOutput();
         };
@@ -127,67 +122,6 @@ function processText() {
   document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
 }
 
-// 使用百度翻译的极速 JSONP 接口（带超时保护）
-function fetchTranslationJSONP(word, element) {
-  wordTranslations[word] = "查询中..."; 
-  if (element) element.classList.add('translating');
-  updateOutput();
-
-  const callbackName = 'baidu_cb_' + Math.random().toString(36).substr(2, 9);
-  let isTimeout = false;
-
-  // 设置 2.5 秒超时，防止一直卡住
-  const timeoutId = setTimeout(() => {
-    isTimeout = true;
-    wordTranslations[word] = "[待填]";
-    if (element) element.classList.remove('translating');
-    updateOutput();
-    const oldScript = document.getElementById(callbackName);
-    if (oldScript) oldScript.remove();
-    delete window[callbackName];
-  }, 2500);
-  
-  window[callbackName] = function(data) {
-    if (isTimeout) return;
-    clearTimeout(timeoutId); // 成功拿到数据，取消超时定时器
-    
-    try {
-      if (data && data.data && data.data.length > 0) {
-        let trans = data.data[0].v;
-        wordTranslations[word] = trans;
-      } else {
-        wordTranslations[word] = "[待填]";
-      }
-    } catch (e) {
-      wordTranslations[word] = "[待填]";
-    }
-    
-    if (element) element.classList.remove('translating');
-    updateOutput();
-    
-    const script = document.getElementById(callbackName);
-    if (script) script.remove();
-    delete window[callbackName];
-  };
-
-  const script = document.createElement('script');
-  script.id = callbackName;
-  // 百度翻译的接口
-  script.src = `https://fanyi.baidu.com/sug?kw=${word}&callback=${callbackName}`;
-  
-  script.onerror = function() {
-    if (isTimeout) return;
-    clearTimeout(timeoutId);
-    wordTranslations[word] = "[待填]";
-    if (element) element.classList.remove('translating');
-    updateOutput();
-    if (script) script.remove();
-    delete window[callbackName];
-  };
-
-  document.body.appendChild(script);
-}
-
 function updateOutput() {
   const resultArea = document.getElementById('resultArea');
   const outputText = document.getElementById('outputText');
@@ -200,8 +134,8 @@ function updateOutput() {
   resultArea.style.display = 'block';
   let lines = [];
   selectedWords.forEach(word => {
-    let trans = wordTranslations[word] || "[待填]";
-    lines.push(`${word} - ${trans}`);
+    // 只留短横线，你去抽卡机里自己填
+    lines.push(`${word} - `);
   });
   outputText.value = lines.join('\n');
 }
@@ -213,7 +147,7 @@ function copyResult() {
   outputText.setSelectionRange(0, 99999);
   try {
     document.execCommand('copy');
-    alert('✅ 复制成功！快去抽卡机里粘贴吧！');
+    alert('✅ 复制成功！去抽卡机填中文吧！');
   } catch (err) {
     alert('复制失败，请手动长按全选复制~');
   }
