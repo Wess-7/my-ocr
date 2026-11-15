@@ -26,6 +26,7 @@
   .sentence-num { color: var(--primary); font-weight: bold; font-size: 13px; margin-right: 6px; background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
   .clickable-word { cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s; display: inline-block; }
   .clickable-word.selected { background: var(--primary); color: white; font-weight: bold; }
+  .clickable-word.translating { background: #ffeaa7; color: #d63031; } /* 正在查询的黄色高亮 */
   
   #resultArea { display: none; position: sticky; bottom: 0; z-index: 10; border-top: 2px dashed #eee;}
 </style>
@@ -102,8 +103,9 @@ function processText() {
             document.querySelectorAll(`.clickable-word`).forEach(el => {
               if (el.textContent.toLowerCase() === lowerWord) el.classList.add('selected');
             });
-            if (!wordTranslations[lowerWord]) {
-              fetchTranslationJSONP(lowerWord);
+            // 如果没查过，或者查失败了，就再去查
+            if (!wordTranslations[lowerWord] || wordTranslations[lowerWord] === "[待填]") {
+              fetchTranslationJSONP(lowerWord, wordSpan);
             }
           }
           updateOutput();
@@ -125,26 +127,44 @@ function processText() {
   document.getElementById('readingBox').scrollIntoView({ behavior: 'smooth' });
 }
 
-// JSONP 魔法查词
-function fetchTranslationJSONP(word) {
+// 使用百度翻译的极速 JSONP 接口（带超时保护）
+function fetchTranslationJSONP(word, element) {
   wordTranslations[word] = "查询中..."; 
+  if (element) element.classList.add('translating');
   updateOutput();
 
-  const callbackName = 'youdao_cb_' + Math.random().toString(36).substr(2, 9);
+  const callbackName = 'baidu_cb_' + Math.random().toString(36).substr(2, 9);
+  let isTimeout = false;
+
+  // 设置 2.5 秒超时，防止一直卡住
+  const timeoutId = setTimeout(() => {
+    isTimeout = true;
+    wordTranslations[word] = "[待填]";
+    if (element) element.classList.remove('translating');
+    updateOutput();
+    const oldScript = document.getElementById(callbackName);
+    if (oldScript) oldScript.remove();
+    delete window[callbackName];
+  }, 2500);
   
   window[callbackName] = function(data) {
+    if (isTimeout) return;
+    clearTimeout(timeoutId); // 成功拿到数据，取消超时定时器
+    
     try {
-      if (data.result && data.result.code === 200 && data.result.entries.length > 0) {
-        let explain = data.result.entries[0].explain;
-        explain = explain.replace(/^[a-z]+\.\s*/i, ''); 
-        wordTranslations[word] = explain;
+      if (data && data.data && data.data.length > 0) {
+        let trans = data.data[0].v;
+        wordTranslations[word] = trans;
       } else {
         wordTranslations[word] = "[待填]";
       }
     } catch (e) {
       wordTranslations[word] = "[待填]";
     }
+    
+    if (element) element.classList.remove('translating');
     updateOutput();
+    
     const script = document.getElementById(callbackName);
     if (script) script.remove();
     delete window[callbackName];
@@ -152,10 +172,14 @@ function fetchTranslationJSONP(word) {
 
   const script = document.createElement('script');
   script.id = callbackName;
-  script.src = `https://dict.youdao.com/suggest?num=1&ver=3.0&doctype=jsonp&cache=false&le=en&q=${word}&callback=${callbackName}`;
+  // 百度翻译的接口
+  script.src = `https://fanyi.baidu.com/sug?kw=${word}&callback=${callbackName}`;
   
   script.onerror = function() {
+    if (isTimeout) return;
+    clearTimeout(timeoutId);
     wordTranslations[word] = "[待填]";
+    if (element) element.classList.remove('translating');
     updateOutput();
     if (script) script.remove();
     delete window[callbackName];
