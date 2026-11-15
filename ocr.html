@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生词OCR</title>
+</head>
+<body>
+<h3>从相册选图</h3>
+<input type="file" accept="image/*" id="fileInput">
+<div id="output" style="white-space:pre-wrap; margin-top:20px;"></div>
+
+<script type="module">
+import { PaddleOCR } from "https://cdn.jsdelivr.net/npm/@paddleocr/paddleocr-js@0.4.2/+esm";
+
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('output').innerText = '识别中，请稍等...';
+  try {
+    const ocr = await PaddleOCR.create({ lang: "en", ocrVersion: "PP-OCRv6" });
+    const [result] = await ocr.predict(file);
+    const lines = result.items.map(item => item.text).join('\n');
+    document.getElementById('output').innerText = lines;
+  } catch (err) {
+    document.getElementById('output').innerText = '出错了：' + err.message;
+  }
+});
+</script>
+</body>
+</html>
