@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏪 脑力小卖部</title>
+<style>
+  :root {
+    --primary: #6c5ce7;
+    --primary-light: #f0edff;
+    --bg: #f7f8fa;
+    --text-main: #2d3436;
+    --text-sub: #636e72;
+    --card-bg: #ffffff;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    padding: 20px;
+    padding-bottom: 60px;
+  }
+
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 35px 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 装饰性光晕 */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(108, 92, 231, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* --- 封面特殊样式 --- */
+  .cover {
+    text-align: center;
+    padding: 80px 25px;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f8ff 100%);
+  }
+  .cover .icon { font-size: 48px; margin-bottom: 20px; }
+  .cover h1 { font-size: 28px; color: var(--primary); letter-spacing: 2px; margin-bottom: 5px; }
+  .cover .en-title { font-size: 12px; color: var(--text-sub); letter-spacing: 1px; margin-bottom: 40px; }
+  .cover .poem { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .cover .en-poem { font-size: 13px; color: var(--text-sub); font-style: italic; }
+
+  /* --- 文字排版 --- */
+  h2 {
+    font-size: 18px;
+    color: var(--primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  p {
+    font-size: 14.5px;
+    color: var(--text-main);
+    margin-bottom: 15px;
+  }
+
+  .hint {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-top: 20px;
+    text-align: center;
+    border-top: 1px dashed #eee;
+    padding-top: 20px;
+  }
+
+  /* 列表样式 */
+  .list-group {
+    margin-bottom: 20px;
+  }
+  .list-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-sub);
+    margin-bottom: 10px;
+  }
+  ul {
+    list-style: none;
+  }
+  li {
+    margin-bottom: 12px;
+    font-size: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  li span.num {
+    font-weight: bold;
+    color: var(--primary);
+    font-family: monospace;
+  }
+
+  /* 金句高亮 */
+  .highlight-quote {
+    text-align: center;
+    font-weight: bold;
+    font-size: 15px;
+    color: var(--primary);
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--primary-light);
+    border-radius: 12px;
+  }
+
+  /* 科学文献区 */
+  .reference {
+    font-size: 11px;
+    color: #999;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    word-break: break-all;
+  }
+
+  /* --- 🌟 跳转按钮样式 🌟 --- */
+  .action-btn {
+    display: inline-block;
+    padding: 12px 35px;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 15px;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
+  }
+  .action-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.2);
+  }
+  .btn-container {
+    text-align: center; 
+    margin-top: 30px;
+    border-top: 1px dashed #eee;
+    padding-top: 20px;
+  }
+
+  /* 尾页特殊样式 */
+  .ending {
+    text-align: center;
+    padding: 80px 25px;
+    background: var(--card-bg);
+  }
+  .ending p { font-size: 16px; margin-bottom: 30px; }
+  .ending .goodnight { font-size: 20px; font-weight: bold; color: var(--primary); }
+
+  /* 带动画的箭头 */
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+  .arrow { display: inline-block; animation: bounce 2s infinite; color: var(--primary); }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Page 1: 封面 -->
+  <div class="card cover">
+    <div class="icon">🫧</div>
+    <h1>脑力小卖部</h1>
+    <div class="en-title">Brain Convenience Store</div>
+    <div class="poem">
+      去繁就简，交由利器；<br>
+      留取轻盈，专注本心。
+    </div>
+    <div class="en-poem">
+      Tools handle the complex,<br>
+      Minds keep the focus.
+    </div>
+  </div>
+
+  <!-- Page 2: 目录 -->
+  <div class="card">
+    <h2>🌟 提取交给点点/选选，记忆交给聪明蛋。</h2>
+    
+    <div class="list-group">
+      <div class="list-title">【输入与提取】</div>
+      <ul>
+        <li><span class="num">01</span> 🫧 <b>点点</b> —— 中文概念剥离</li>
+        <li><span class="num">02</span> 🪄 <b>选选</b> —— 语境生词提取</li>
+      </ul>
+    </div>
+
+    <div class="list-group">
+      <div class="list-title">【整理与记忆】</div>
+      <ul>
+        <li><span class="num">03</span> 🥚 <b>聪明蛋</b> —— 核心记忆引擎</li>
+      </ul>
+    </div>
+
+    <div class="hint">
+      省去繁杂整理，把力气留给真正的记忆 <span class="arrow">↓</span>
+    </div>
+  </div>
+
+  <!-- Page 3: 省流版 -->
+  <div class="card">
+    <h2>🌟 店面橱窗</h2>
+    <p>🥚 <b>聪明蛋</b>：每天抽一点，把知识悄悄咽下去。</p>
+    <p>🪄 <b>选选</b>：把冗长的英语倒进去，留下最甜的果肉。</p>
+    <p>🫧 <b>点点</b>：把厚重的书切碎，吧嗒吧嗒挑走精髓。</p>
+    
+    <div class="hint" style="color: var(--primary);">
+      提取重点、整理排版、抽卡复习，一条龙帮你搞定。
+    </div>
+  </div>
+
+  <!-- Page 4: 精讲 点点 -->
+  <div class="card">
+    <h2>🫧 点点 <span style="font-size:14px; font-weight:normal; color:#888;">—— 中文考点切切乐</span></h2>
+    <p><b>运行逻辑：</b>剥离长篇中文资料，重组你的专属知识网络。</p>
+    <p><b>交互体验：</b>文字化作圆角方块。支持指尖滑动多选，伴随轻柔的物理下压感与微小水滴音效，极具解压感。</p>
+    <p><b>核心玩法：</b>智能剔除标点干扰，选词自动编号排队，一键复制，即刻生成纸质复习索引。</p>
+    
+    <!-- 跳转按钮：点点 -->
+    <div class="btn-container">
+        <a href="diandian.html" class="action-btn">🫧 立即体验「点点」</a>
+    </div>
+  </div>
+
+  <!-- Page 5: 精讲 选选 -->
+  <div class="card">
+    <h2>🪄 选选 <span style="font-size:14px; font-weight:normal; color:#888;">—— 英语阅读挑豆机</span></h2>
+    <p><b>运行逻辑：</b>精准捕获长篇英语阅读中的生词，拒绝冗杂信息。</p>
+    <p><b>交互体验：</b>长文自动按句式切片，保持语境完整。指尖轻触，生词瞬间高亮。</p>
+    <p><b>核心玩法：</b>独有翻译合并算法，将外部翻译结果一键排版，无缝传输至后面的聪明蛋。</p>
+    
+    <!-- 跳转按钮：选选（原文件名叫 ocr.html） -->
+    <div class="btn-container">
+        <a href="ocr.html" class="action-btn">🪄 立即体验「选选」</a>
+    </div>
+  </div>
+
+  <!-- Page 6: 精讲 聪明蛋 -->
+  <div class="card">
+    <h2>🥚 聪明蛋 <span style="font-size:14px; font-weight:normal; color:#888;">—— 多语种记忆盲盒</span></h2>
+    <p><b>运行逻辑：</b>12种语言交叉互译，为你量身定制的抽卡系统。</p>
+    <p><b>交互体验：</b>淡入浮现的翻卡动画，配合打字、选择与连连看三大测试模式。</p>
+    <p><b>核心玩法：</b>自定义生词库，接收前面的词汇，通过反复抽卡与测试，建立初步印象并自动收集错题。</p>
+    
+    <!-- 跳转按钮：聪明蛋 -->
+    <div class="btn-container">
+        <a href="smart.html" class="action-btn">🥚 立即体验「聪明蛋」</a>
+    </div>
+  </div>
+
+  <!-- Page 7: 极简总结 -->
+  <div class="card">
+    <h2>🚀 快捷指令</h2>
+    <ul style="margin-bottom: 20px;">
+      <li>记忆缺口 ➡️ 召唤 <b>聪明蛋</b> 🥚</li>
+      <li>语境盲区 ➡️ 唤醒 <b>选选</b> 🪄</li>
+      <li>体系重构 ➡️ 启动 <b>点点</b> 🫧</li>
+    </ul>
+    
+    <div class="highlight-quote">
+      “提取交给点点/选选，记忆交给聪明蛋。”
+    </div>
+  </div>
+
+  <!-- Page 8: 科学机制 -->
+  <div class="card">
+    <h2>🧠 背后的科学 / 大脑的归档机制</h2>
+    <p>为什么这三款工具能辅助学习？因为它们的运作完全契合大脑处理信息的三个生理阶段：</p>
+    
+    <p><b>1. 降低认知负荷（选选 / 点点）</b><br>
+    人的工作记忆容量极小。长篇阅读会产生大量认知噪音，导致大脑过载。选选与点点的剥离功能，实质上是帮你过滤冗余信息，让大脑算力集中在核心概念上。</p>
+    
+    <p><b>2. 触发提取练习（聪明蛋）</b><br>
+    抽卡与自测，在认知心理学中被称为提取练习。这不仅是在复习，更是在向大脑的海马体发送强烈的信号，为这些知识打上高优先级标签。</p>
+    
+    <p><b>3. 睡眠依赖的系统巩固（深睡眠）</b><br>
+    当夜间进入慢波睡眠，大脑会启动系统巩固机制。海马体会将白天被高频标记的知识，转移至新皮层，最终固化为长期记忆。</p>
+    
+    <div class="reference">
+      <b>【参考文献】</b><br>
+      Diekelmann, S., & Born, J. (2010). The memory function of sleep. Nature Reviews Neuroscience, 11(2), 114-126.
+    </div>
+  </div>
+
+  <!-- Page 9: 晚安彩蛋 -->
+  <div class="card ending">
+    <p>今天辛苦了。</p>
+    <p>剩下的，都交给时间与睡眠吧。</p>
+    <br>
+    <p class="goodnight">晚安。 🌙</p>
+  </div>
+
+</div>
+
+</body>
+</html>
