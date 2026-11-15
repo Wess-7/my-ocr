@@ -3,118 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>单词点选提取器</title>
+<title>生词提取器</title>
 <style>
-  body { font-family: sans-serif; padding: 15px; background: #f0f2f5; margin: 0; }
-  .box { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-  textarea { width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; font-size: 14px; font-family: inherit; outline: none; }
-  .btn { width: 100%; padding: 12px; background: #6c5ce7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-  .btn:active { background: #5a4bcf; }
-  .btn-green { background: #00b894; }
-  .btn-green:active { background: #009e7f; }
-  
-  .word-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .word-chip { 
-    display: inline-block; padding: 6px 10px; background: #f1f2f6; border-radius: 6px; 
-    font-size: 15px; cursor: pointer; user-select: none; transition: 0.2s;
-    border: 1px solid transparent;
+  :root {
+    --primary: #6c5ce7;
+    --primary-light: #f0edff;
+    --bg: #f0f2f5;
+    --text-main: #2d3436;
+    --text-sub: #636e72;
   }
-  .word-chip.selected { background: #e8e5ff; color: #6c5ce7; border-color: #6c5ce7; font-weight: bold; }
+  * { box-sizing: border-box; }
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    background: var(--bg); 
+    margin: 0; 
+    padding: 15px; 
+    color: var(--text-main);
+    padding-bottom: 40px;
+  }
+  .card { 
+    background: white; 
+    border-radius: 16px; 
+    padding: 20px; 
+    margin-bottom: 15px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
+  }
+  h3 { 
+    margin-top: 0; 
+    font-size: 16px; 
+    color: var(--primary); 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h3 span { font-size: 20px; }
+  textarea { 
+    width: 100%; 
+    height: 140px; 
+    border: 2px solid #eee; 
+    border-radius: 12px; 
+    padding: 12px; 
+    font-size: 14px; 
+    font-family: inherit;
+    outline: none; 
+    resize: none;
+    transition: border-color 0.3s;
+    line-height: 1.5;
+  }
+  textarea:focus { border-color: var(--primary); }
+  .btn { 
+    width: 100%; 
+    padding: 14px; 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    border-radius: 25px; 
+    font-size: 16px; 
+    font-weight: bold; 
+    margin-top: 15px; 
+    cursor: pointer; 
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    transition: transform 0.1s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-copy { background: #00b894; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3); }
   
-  #resultArea { display: none; }
+  .word-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    margin-top: 15px; 
+    max-height: 45vh; 
+    overflow-y: auto; 
+    padding-bottom: 10px;
+  }
+  .word-chip { 
+    display: inline-block; 
+    padding: 8px 14px; 
+    background: #f8f9fa; 
+    color: var(--text-main);
+    border: 2px solid #eee;
+    border-radius: 20px; 
+    font-size: 15px; 
+    cursor: pointer; 
+    user-select: none; 
+    transition: all 0.2s;
+  }
+  .word-chip.selected { 
+    background: var(--primary-light); 
+    color: var(--primary); 
+    border-color: var(--primary); 
+    font-weight: bold; 
+    transform: scale(1.05);
+  }
+  .hint { font-size: 13px; color: var(--text-sub); margin-bottom: 5px; }
 </style>
 </head>
 <body>
 
-<div class="box">
-  <h3 style="margin-top:0;">1. 粘贴英文原文</h3>
-  <textarea id="inputText" placeholder="把从夸克/微信提取出来的整段英文，粘贴到这里..."></textarea>
+<div class="card">
+  <h3><span>📋</span> 1. 粘贴英文原文</h3>
+  <div class="hint">将夸克提取出来的文字粘贴到这里</div>
+  <textarea id="inputText" placeholder="Paste the text here..."></textarea>
   <button class="btn" onclick="splitWords()">✂️ 拆分单词</button>
 </div>
 
-<div class="box" id="wordsBox" style="display:none;">
-  <h3 style="margin-top:0;">2. 点选你要背的单词</h3>
-  <div style="font-size: 13px; color: #888; margin-bottom: 10px;">（点一下变紫色，再点一下取消）</div>
+<div class="card" id="wordsBox" style="display:none;">
+  <h3><span>👆</span> 2. 点选你要背的词</h3>
+  <div class="hint">点一下变成紫色，再点一下取消</div>
   <div class="word-container" id="wordContainer"></div>
 </div>
 
-<div class="box" id="resultArea">
-  <h3 style="margin-top:0;">3. 导出结果</h3>
+<div class="card" id="resultArea" style="display:none;">
+  <h3><span>📤</span> 3. 导出你的生词</h3>
   <textarea id="outputText" readonly></textarea>
-  <button class="btn btn-green" onclick="copyResult()">📋 复制这些词</button>
+  <button class="btn btn-copy" onclick="copyResult()">📋 一键复制</button>
 </div>
 
 <script>
 let selectedWords = new Set();
-let wordTranslations = {};
 
-// 拆分文本
 function splitWords() {
   const text = document.getElementById('inputText').value;
-  if (!text.trim()) return alert('请先粘贴文字！');
+  if (!text.trim()) { alert('请先粘贴文字哦！'); return; }
 
-  // 匹配英文单词（忽略标点、数字）
+  // 提取所有纯英文字母组合
   const matches = text.match(/[a-zA-Z]+/g);
-  if (!matches) return alert('没有找到英文单词！');
+  if (!matches) { alert('没有找到英文单词！'); return; }
 
-  // 去重，全转小写
+  // 去重，转小写，过滤太长或太短的
   const uniqueWords = [...new Set(matches.map(w => w.toLowerCase()))];
-  
-  // 过滤掉超短词或超长词
   const validWords = uniqueWords.filter(w => w.length > 1 && w.length < 20);
 
   const container = document.getElementById('wordContainer');
   container.innerHTML = '';
   selectedWords.clear();
-  wordTranslations = {};
 
   validWords.forEach(word => {
     const span = document.createElement('span');
     span.className = 'word-chip';
     span.textContent = word;
-    span.onclick = () => toggleWord(word, span);
+    // 绑定点击事件
+    span.onclick = function() {
+      if (selectedWords.has(word)) {
+        selectedWords.delete(word);
+        span.classList.remove('selected');
+      } else {
+        selectedWords.add(word);
+        span.classList.add('selected');
+      }
+      updateOutput();
+    };
     container.appendChild(span);
   });
 
   document.getElementById('wordsBox').style.display = 'block';
   document.getElementById('resultArea').style.display = 'none';
-}
-
-// 点击选中
-function toggleWord(word, span) {
-  if (selectedWords.has(word)) {
-    selectedWords.delete(word);
-    span.classList.remove('selected');
-  } else {
-    selectedWords.add(word);
-    span.classList.add('selected');
-    // 如果没有翻译过，去查一下
-    if (!wordTranslations[word]) {
-      fetchTranslation(word);
-    }
+  
+  // 如果词太多，自动滚到单词区
+  if(validWords.length > 0) {
+    document.getElementById('wordsBox').scrollIntoView({ behavior: 'smooth' });
   }
-  updateOutput();
 }
 
-// 查翻译 (使用免费的 MyMemory API)
-async function fetchTranslation(word) {
-  try {
-    const res = await fetch(`https://api.mymemory.translated.net/get?q=${word}&langpair=en|zh-CN`);
-    const data = await res.json();
-    let trans = data.responseData.translatedText;
-    // 清理一下多余内容
-    if (trans && trans.toLowerCase() !== word) {
-      wordTranslations[word] = trans;
-    } else {
-      wordTranslations[word] = ""; // 翻译失败或没变化
-    }
-  } catch (e) {
-    wordTranslations[word] = "";
-  }
-  updateOutput();
-}
-
-// 更新导出结果
 function updateOutput() {
   const resultArea = document.getElementById('resultArea');
   const outputText = document.getElementById('outputText');
@@ -127,19 +178,25 @@ function updateOutput() {
   resultArea.style.display = 'block';
   let lines = [];
   selectedWords.forEach(word => {
-    let trans = wordTranslations[word] ? wordTranslations[word] : "待填写";
-    lines.push(`${word} - ${trans}`);
+    // 只输出单词加个减号，后面留给抽卡机去填
+    lines.push(`${word} - `);
   });
   outputText.value = lines.join('\n');
 }
 
-// 复制结果
 function copyResult() {
   const outputText = document.getElementById('outputText');
   if (!outputText.value) return;
+  
   outputText.select();
-  document.execCommand('copy');
-  alert('✅ 复制成功！快去抽卡机里粘贴吧！');
+  outputText.setSelectionRange(0, 99999); // 手机端兼容
+  
+  try {
+    document.execCommand('copy');
+    alert('✅ 复制成功！快去抽卡机里粘贴吧！');
+  } catch (err) {
+    alert('复制失败，请手动长按全选复制~');
+  }
 }
 </script>
 </body>
