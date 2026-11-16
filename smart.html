@@ -64,6 +64,10 @@
   .btn-view,.btn-smart{background:var(--p);grid-column:span 2;}
   .btn-reset{background:#FFF0F0;color:var(--d);border:2px dashed var(--d);width:100%;padding:15px;margin-top:20px;border-radius:15px;font-size:14px;cursor:pointer;font-weight:bold;}
   
+  /* 🚀 跳转选选按钮样式 */
+  .btn-jump{display:block;text-align:center;text-decoration:none;background:#F4F1FF;color:var(--p);border:2px dashed var(--p);width:100%;padding:15px;margin-bottom:15px;border-radius:15px;font-size:15px;font-weight:bold;transition:.3s;}
+  .btn-jump:hover{background:#E8E2FF;}
+
   /* ================= 抽卡区 ================= */
   #card-panel{display:flex;flex-direction:column;align-items:center;width:100%;}
   .card-container{width:300px;height:200px;margin-bottom:25px;position:relative;z-index:1;}
@@ -202,6 +206,9 @@
   </div>
 
   <div id="folder">
+    <!-- 🚀 按钮名字已改成“去选选” -->
+    <a href="ocr.html" class="btn-jump">🪄 去选选</a>
+    
     <select id="groupSel" onchange="changeGroup()"></select>
     <div class="folder-btns">
       <button class="btn-add" onclick="createGroup()">➕ 新建组</button>
@@ -447,46 +454,51 @@ const initApp = () => {
   $('welcome').style.opacity='0';
   setTimeout(()=>{ $('welcome').style.display='none'; $('main').style.display='flex'; }, 500);
   renderHistory(); switchMode('custom');
+  
+  // 页面加载时接收一次
+  receiveFromXuan(true);
+};
 
-  // ================= 新增：接收选选的传纸条 =================
+/* ================= 🚀 自动接收选选传送门 ================= */
+const receiveFromXuan = (isSilent = false) => {
   const pendingData = localStorage.getItem('smart_pending_words');
-  if (pendingData) {
-    try {
-      const data = JSON.parse(pendingData);
-      // 检查语言是不是对的（选选发来的是 中文 ➡️ 英语）
-      if (data.target === curTarget && data.native === curNative) {
-        const groupName = "📦 选选传送门";
-        if (!customGroups[groupName]) customGroups[groupName] = [];
-        
-        let addedCount = 0;
-        data.words.forEach(newWord => {
-          // 简单去重
-          const exists = customGroups[groupName].some(w => w.ko === newWord.ko);
-          if (!exists) {
-            customGroups[groupName].push(newWord);
-            addedCount++;
-          }
-        });
-        
-        // 保存并切换到传送门组
+  if (!pendingData) return; // 没东西就静默退出
+  
+  try {
+    const data = JSON.parse(pendingData);
+    if (data.target === curTarget && data.native === curNative) {
+      const groupName = "📦 选选传送门";
+      if (!customGroups[groupName]) customGroups[groupName] = [];
+      
+      let addedCount = 0;
+      data.words.forEach(newWord => {
+        const exists = customGroups[groupName].some(w => w.ko === newWord.ko);
+        if (!exists) {
+          customGroups[groupName].push(newWord);
+          addedCount++;
+        }
+      });
+      
+      if(addedCount > 0) {
         setS("myCustomGroups"+curKey, customGroups);
         activeGroup = groupName; 
         renderGroups();
-        curDeck = []; // 清空牌堆，马上能抽到新词
-        
-        // 清空中转站，防止重复接收
-        localStorage.removeItem('smart_pending_words');
-        
-        setTimeout(() => toast(`📦 成功接收 ${addedCount} 个词到「${groupName}」`), 800);
-      } else {
-        setTimeout(() => {
-          alert(`📦 收到选选发来的词，但语言不匹配！\n选选发来的是：中文 ➡️ 英语\n你当前选的是：${getLangName($('nativeSel'))} ➡️ ${getLangName($('targetSel'))}\n\n为了接收，请刷新页面，并选择【中文 ➡️ 英语】。`);
-        }, 800);
+        curDeck = []; // 清空牌堆
+        toast(`📦 成功接收 ${addedCount} 个词！`);
       }
-    } catch(e) {}
-  }
-  // ================= 接收逻辑结束 =================
+      
+      // 清空中转站，防止重复接收
+      localStorage.removeItem('smart_pending_words');
+    }
+  } catch(e) {}
 };
+
+// 监听网页可见性：当你从选选切回聪明蛋的网页时，瞬间自动接收！
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    receiveFromXuan(true);
+  }
+});
 
 /* ================= 通用逻辑 ================= */
 const shuffle = arr => { let c=arr.length, r; while(c!=0){ r=Math.floor(Math.random()*c); c--; [arr[c],arr[r]]=[arr[r],arr[c]]; } return arr; };
