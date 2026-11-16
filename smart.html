@@ -446,7 +446,46 @@ const initApp = () => {
 
   $('welcome').style.opacity='0';
   setTimeout(()=>{ $('welcome').style.display='none'; $('main').style.display='flex'; }, 500);
-  renderHistory(); renderGroups(); switchMode('custom');
+  renderHistory(); switchMode('custom');
+
+  // ================= 新增：接收选选的传纸条 =================
+  const pendingData = localStorage.getItem('smart_pending_words');
+  if (pendingData) {
+    try {
+      const data = JSON.parse(pendingData);
+      // 检查语言是不是对的（选选发来的是 中文 ➡️ 英语）
+      if (data.target === curTarget && data.native === curNative) {
+        const groupName = "📦 选选传送门";
+        if (!customGroups[groupName]) customGroups[groupName] = [];
+        
+        let addedCount = 0;
+        data.words.forEach(newWord => {
+          // 简单去重
+          const exists = customGroups[groupName].some(w => w.ko === newWord.ko);
+          if (!exists) {
+            customGroups[groupName].push(newWord);
+            addedCount++;
+          }
+        });
+        
+        // 保存并切换到传送门组
+        setS("myCustomGroups"+curKey, customGroups);
+        activeGroup = groupName; 
+        renderGroups();
+        curDeck = []; // 清空牌堆，马上能抽到新词
+        
+        // 清空中转站，防止重复接收
+        localStorage.removeItem('smart_pending_words');
+        
+        setTimeout(() => toast(`📦 成功接收 ${addedCount} 个词到「${groupName}」`), 800);
+      } else {
+        setTimeout(() => {
+          alert(`📦 收到选选发来的词，但语言不匹配！\n选选发来的是：中文 ➡️ 英语\n你当前选的是：${getLangName($('nativeSel'))} ➡️ ${getLangName($('targetSel'))}\n\n为了接收，请刷新页面，并选择【中文 ➡️ 英语】。`);
+        }, 800);
+      }
+    } catch(e) {}
+  }
+  // ================= 接收逻辑结束 =================
 };
 
 /* ================= 通用逻辑 ================= */
