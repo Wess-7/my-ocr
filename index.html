@@ -6,9 +6,9 @@
 <title>🏪 脑力小卖部</title>
 <style>
   :root {
-    /* 奶油原木风配色 */
-    --primary: #8C7AFF; /* 香芋紫 */
-    --primary-light: #F4F1FF;
+    /* 奶油原木风配色 - 优化版 */
+    --primary: #7A6BB5; /* 灰调香芋紫：降低饱和度，更温润护眼 */
+    --primary-light: #F4F2FB; /* 非常淡的雾霾紫，作为强调背景 */
     --bg: #FDFCF8; /* 奶油米白 */
     --text-main: #4A4A4A; /* 深灰，不刺眼 */
     --text-sub: #8E8E8E;
@@ -26,10 +26,10 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg);
     color: var(--text-main);
-    line-height: 1.9; /* 增加呼吸感 */
+    line-height: 1.9;
     -webkit-font-smoothing: antialiased;
     padding: 20px;
-    padding-bottom: 60px;
+    padding-bottom: 80px; /* 留出音乐按钮的空间 */
   }
 
   /* 顶部营业灯牌 */
@@ -72,13 +72,12 @@
     background: var(--card-bg);
     border-radius: 20px;
     padding: 35px 25px;
-    border: 1px solid var(--card-border); /* 纸质边框感 */
+    border: 1px solid var(--card-border);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
     position: relative;
     overflow: hidden;
   }
 
-  /* 装饰性光晕 - 极其微弱 */
   .card::before {
     content: '';
     position: absolute;
@@ -86,7 +85,7 @@
     right: -50px;
     width: 150px;
     height: 150px;
-    background: radial-gradient(circle, rgba(140, 122, 255, 0.05) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(122, 107, 181, 0.05) 0%, transparent 70%);
     border-radius: 50%;
   }
 
@@ -164,7 +163,7 @@
     padding: 15px;
     background: var(--primary-light);
     border-radius: 12px;
-    border: 1px solid #E5DFFF;
+    border: 1px solid #E6E1F4;
   }
 
   /* 科学文献区 */
@@ -185,15 +184,15 @@
     background: var(--primary);
     color: white;
     text-decoration: none;
-    border-radius: 50px; /* 药丸形 */
+    border-radius: 50px;
     font-weight: bold;
     font-size: 15px;
-    box-shadow: 0 6px 15px rgba(140, 122, 255, 0.25);
+    box-shadow: 0 6px 15px rgba(122, 107, 181, 0.25);
     transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
   }
   .action-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(140, 122, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(122, 107, 181, 0.2);
   }
   .btn-container {
     text-align: center; 
@@ -218,6 +217,46 @@
   }
   .arrow { display: inline-block; animation: bounce 2s infinite; color: var(--primary); }
 
+  /* ================= 音乐按钮样式（萌化版） ================= */
+  .music-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid var(--card-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 26px;
+    z-index: 100;
+    /* 默认状态：灰暗 */
+    filter: grayscale(1);
+    opacity: 0.4;
+  }
+
+  .music-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    opacity: 0.8;
+  }
+
+  /* 开启后的状态：点亮、香芋紫发光 */
+  .music-btn.playing {
+    filter: grayscale(0);
+    opacity: 1;
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 0 20px rgba(122, 107, 181, 0.3);
+  }
+  
+  .music-btn:active {
+    transform: scale(0.9);
+  }
 </style>
 </head>
 <body>
@@ -361,5 +400,89 @@
 
 </div>
 
+<!-- 🚀 音乐按钮（小月亮版本） -->
+<div class="music-btn" id="musicBtn" title="听点治愈的声音">
+  <span id="musicIcon">🌙</span>
+</div>
+
+<script>
+/* ==========================================
+   用纯代码手搓一个治愈系的“赛博风铃”
+   ========================================== */
+let audioCtx = null;
+let isPlaying = false;
+let musicInterval = null;
+
+// 选用极其治愈的五声音阶 (C大调的 do re mi sol la，以及高音do)
+const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+
+const musicBtn = document.getElementById('musicBtn');
+const musicIcon = document.getElementById('musicIcon');
+
+function playTone(freq) {
+  if(!audioCtx) return;
+  
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  osc.type = 'sine'; 
+  osc.frequency.value = freq;
+  
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.04, now + 0.05); // 极低的音量
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // 3秒余音
+  
+  osc.start(now);
+  osc.stop(now + 3.0);
+}
+
+function playRandomNote() {
+  if(!isPlaying) return;
+  
+  const randomFreq = notes[Math.floor(Math.random() * notes.length)];
+  playTone(randomFreq);
+  
+  // 偶尔(30%概率)来个双音，更有层次感
+  if(Math.random() > 0.7) {
+    setTimeout(() => {
+      const secondFreq = notes[Math.floor(Math.random() * notes.length)];
+      playTone(secondFreq);
+    }, 200);
+  }
+}
+
+musicBtn.addEventListener('click', () => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  isPlaying = !isPlaying;
+  
+  if (isPlaying) {
+    // 开启：月亮变成发光的小星星
+    musicBtn.classList.add('playing');
+    musicIcon.textContent = '✨'; 
+    playRandomNote(); 
+    
+    musicInterval = setInterval(() => {
+      playRandomNote();
+    }, 2500); // 每隔2.5秒随机响一次
+  } else {
+    // 关闭：星星变回灰暗的小月亮
+    musicBtn.classList.remove('playing');
+    musicIcon.textContent = '🌙';
+    clearInterval(musicInterval);
+    musicInterval = null;
+  }
+});
+</script>
 </body>
 </html>
