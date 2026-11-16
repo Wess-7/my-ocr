@@ -51,6 +51,7 @@
   .btn-generate { background: #FFB259; box-shadow: 0 4px 15px rgba(255, 178, 89, 0.2); margin-top: 10px;}
   .btn-merge { background: #00B894; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.2); margin-top: 10px;}
   .btn-copy { background: var(--primary); box-shadow: 0 4px 15px rgba(140, 122, 255, 0.2); margin-top: 10px;}
+  .btn-send { background: #00B894; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.2); margin-top: 10px;}
   
   #readingArea { display: none; max-height: 40vh; overflow-y: auto; padding-right: 5px; background: #FAFAFA; border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid var(--border);}
   .sentence-row { margin-bottom: 15px; line-height: 2.2; font-size: 15px; }
@@ -132,6 +133,9 @@
     <h4 style="color:var(--primary);">最终结果（直接去抽卡机）</h4>
     <textarea id="mergeOutput" class="result-textarea" style="border-color:var(--primary); height:100px;" readonly placeholder="这里会生成 apple - 苹果..."></textarea>
     <button class="btn btn-copy" onclick="copyMergeResult()">📋 一键复制最终结果</button>
+    
+    <!-- 这里就是新增的按钮！ -->
+    <button class="btn btn-send" onclick="sendToSmart()">📦 发送到聪明蛋</button>
   </div>
 </div>
 
@@ -278,6 +282,35 @@ function copyMergeResult() {
   } catch (err) {
     alert('复制失败，请手动长按文本框全选复制~');
   }
+}
+
+// ================= 新增：发送到聪明蛋 =================
+function sendToSmart() {
+  const output = document.getElementById('mergeOutput').value;
+  if (!output) {
+    alert("还没有生成合并结果哦，请先完成翻译合并！");
+    return;
+  }
+  
+  // 把 "apple - 苹果" 解析成聪明蛋需要的格式 {ko: "apple", cn: "苹果"}
+  const lines = output.split('\n').filter(line => line.trim());
+  const words = [];
+  lines.forEach(line => {
+    const parts = line.split(' - ');
+    if (parts.length >= 2) {
+      words.push({ ko: parts[0].trim(), cn: parts.slice(1).join(' - ').trim() });
+    } else {
+      words.push({ ko: line.trim(), cn: '（待补充翻译）' });
+    }
+  });
+
+  if (words.length === 0) return alert("没有识别到有效格式。");
+
+  // 存入浏览器的“中转站”，固定为中文->英语
+  const payload = { target: 'en-US', native: 'zh-CN', words: words };
+  localStorage.setItem('smart_pending_words', JSON.stringify(payload));
+  
+  alert(`✅ 成功打包 ${words.length} 个单词！\n\n请打开「聪明蛋」，确保你选的语言是【中文 ➡️ 英语】，打开后会自动接收！`);
 }
 </script>
 </body>
