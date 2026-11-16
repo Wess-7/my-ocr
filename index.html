@@ -6,21 +6,16 @@
 <title>🏪 脑力小卖部</title>
 <style>
   :root {
-    /* 奶油原木风配色 - 优化版 */
-    --primary: #7A6BB5; /* 灰调香芋紫：降低饱和度，更温润护眼 */
-    --primary-light: #F4F2FB; /* 非常淡的雾霾紫，作为强调背景 */
-    --bg: #FDFCF8; /* 奶油米白 */
-    --text-main: #4A4A4A; /* 深灰，不刺眼 */
+    --primary: #7A6BB5;
+    --primary-light: #F4F2FB;
+    --bg: #FDFCF8;
+    --text-main: #4A4A4A;
     --text-sub: #8E8E8E;
     --card-bg: #FFFFFF;
-    --card-border: #EBE6DF; /* 暖灰色边框 */
+    --card-border: #EBE6DF;
   }
 
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -29,10 +24,9 @@
     line-height: 1.9;
     -webkit-font-smoothing: antialiased;
     padding: 20px;
-    padding-bottom: 80px; /* 留出音乐按钮的空间 */
+    padding-bottom: 60px;
   }
 
-  /* 顶部营业灯牌 */
   .shop-header {
     max-width: 500px;
     margin: 0 auto 20px auto;
@@ -53,20 +47,11 @@
   }
   
   .shop-header .dot {
-    width: 8px;
-    height: 8px;
-    background-color: #00B894;
-    border-radius: 50%;
+    width: 8px; height: 8px; background-color: #00B894; border-radius: 50%;
     box-shadow: 0 0 5px rgba(0, 184, 148, 0.6);
   }
 
-  .container {
-    max-width: 500px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  }
+  .container { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
 
   .card {
     background: var(--card-bg);
@@ -79,196 +64,97 @@
   }
 
   .card::before {
-    content: '';
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle, rgba(122, 107, 181, 0.05) 0%, transparent 70%);
-    border-radius: 50%;
+    content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(122, 107, 181, 0.05) 0%, transparent 70%); border-radius: 50%;
   }
 
-  /* --- 封面特殊样式 --- */
-  .cover {
-    text-align: center;
-    padding: 70px 25px;
-    background: linear-gradient(135deg, #FFFFFF 0%, #FCFAFF 100%);
-  }
+  .cover { text-align: center; padding: 70px 25px; background: linear-gradient(135deg, #FFFFFF 0%, #FCFAFF 100%); }
   .cover .icon { font-size: 48px; margin-bottom: 20px; }
   .cover h1 { font-size: 28px; color: var(--primary); letter-spacing: 2px; margin-bottom: 5px; }
   .cover .en-title { font-size: 12px; color: var(--text-sub); letter-spacing: 1.5px; margin-bottom: 40px; }
   .cover .poem { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
   .cover .en-poem { font-size: 13px; color: var(--text-sub); font-style: italic; }
 
-  /* --- 文字排版 --- */
-  h2 {
-    font-size: 18px;
-    color: var(--primary);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  h2 { font-size: 18px; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  p { font-size: 14.5px; color: var(--text-main); margin-bottom: 15px; }
+  .hint { font-size: 13px; color: var(--text-sub); margin-top: 25px; text-align: center; border-top: 1px dashed var(--card-border); padding-top: 20px; }
 
-  p {
-    font-size: 14.5px;
-    color: var(--text-main);
-    margin-bottom: 15px;
-  }
+  .list-group { margin-bottom: 20px; }
+  .list-title { font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 10px; letter-spacing: 1px; }
+  ul { list-style: none; }
+  li { margin-bottom: 12px; font-size: 15px; display: flex; align-items: flex-start; gap: 10px; }
+  li span.num { font-weight: bold; color: var(--primary); font-family: monospace; }
 
-  .hint {
-    font-size: 13px;
-    color: var(--text-sub);
-    margin-top: 25px;
-    text-align: center;
-    border-top: 1px dashed var(--card-border);
-    padding-top: 20px;
-  }
-
-  /* 列表样式 */
-  .list-group {
-    margin-bottom: 20px;
-  }
-  .list-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-sub);
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-  }
-  ul {
-    list-style: none;
-  }
-  li {
-    margin-bottom: 12px;
-    font-size: 15px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  li span.num {
-    font-weight: bold;
-    color: var(--primary);
-    font-family: monospace;
-  }
-
-  /* 金句高亮 */
   .highlight-quote {
-    text-align: center;
-    font-weight: bold;
-    font-size: 15px;
-    color: var(--primary);
-    margin: 20px 0;
-    padding: 15px;
-    background: var(--primary-light);
-    border-radius: 12px;
-    border: 1px solid #E6E1F4;
+    text-align: center; font-weight: bold; font-size: 15px; color: var(--primary);
+    margin: 20px 0; padding: 15px; background: var(--primary-light); border-radius: 12px; border: 1px solid #E6E1F4;
   }
 
-  /* 科学文献区 */
-  .reference {
-    font-size: 11px;
-    color: #A0A0A0;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid var(--card-border);
-    word-break: break-all;
-    line-height: 1.6;
-  }
+  .reference { font-size: 11px; color: #A0A0A0; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--card-border); line-height: 1.6; }
 
-  /* --- 跳转按钮样式 --- */
   .action-btn {
-    display: inline-block;
-    padding: 12px 35px;
-    background: var(--primary);
-    color: white;
-    text-decoration: none;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 15px;
-    box-shadow: 0 6px 15px rgba(122, 107, 181, 0.25);
+    display: inline-block; padding: 12px 35px; background: var(--primary); color: white; text-decoration: none;
+    border-radius: 50px; font-weight: bold; font-size: 15px; box-shadow: 0 6px 15px rgba(122, 107, 181, 0.25);
     transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
   }
-  .action-btn:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(122, 107, 181, 0.2);
-  }
-  .btn-container {
-    text-align: center; 
-    margin-top: 30px;
-    border-top: 1px dashed var(--card-border);
-    padding-top: 20px;
-  }
+  .action-btn:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(122, 107, 181, 0.2); }
+  .btn-container { text-align: center; margin-top: 30px; border-top: 1px dashed var(--card-border); padding-top: 20px; }
 
-  /* 尾页特殊样式 */
-  .ending {
-    text-align: center;
-    padding: 70px 25px;
-    background: var(--card-bg);
-  }
+  .ending { text-align: center; padding: 70px 25px; background: var(--card-bg); }
   .ending p { font-size: 16px; margin-bottom: 30px; }
   .ending .goodnight { font-size: 20px; font-weight: bold; color: var(--primary); }
 
-  /* 带动画的箭头 */
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
-  }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
   .arrow { display: inline-block; animation: bounce 2s infinite; color: var(--primary); }
 
-  /* ================= 音乐按钮样式（萌化版） ================= */
+  /* ================= 🚀 微调后的音乐按钮 ================= */
   .music-btn {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 52px;
-    height: 52px;
+    bottom: 24px;
+    right: 20px;
+    width: 42px; /* 从 52px 缩小到 42px */
+    height: 42px;
     border-radius: 50%;
-    background: #FFFFFF;
+    background: rgba(255, 255, 255, 0.7); /* 半透明白色底 */
+    backdrop-filter: blur(5px); /* 磨砂玻璃质感，极其轻盈 */
+    -webkit-backdrop-filter: blur(5px);
     border: 1px solid var(--card-border);
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    font-size: 26px;
+    font-size: 20px; /* 图标同步缩小到 20px，比例刚刚好 */
     z-index: 100;
-    /* 默认状态：灰暗 */
     filter: grayscale(1);
-    opacity: 0.4;
+    opacity: 0.5;
   }
 
   .music-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-    opacity: 0.8;
+    transform: translateY(-2px) scale(1.05);
+    opacity: 0.9;
   }
 
-  /* 开启后的状态：点亮、香芋紫发光 */
   .music-btn.playing {
     filter: grayscale(0);
     opacity: 1;
     border-color: var(--primary);
     background: var(--primary-light);
-    box-shadow: 0 0 20px rgba(122, 107, 181, 0.3);
+    box-shadow: 0 0 15px rgba(122, 107, 181, 0.25);
   }
   
-  .music-btn:active {
-    transform: scale(0.9);
-  }
+  .music-btn:active { transform: scale(0.9); }
 </style>
 </head>
 <body>
 
-<!-- 新增的营业灯牌 -->
 <div class="shop-header">
   <div class="dot"></div>
   <span>营业中 · 欢迎光临</span>
 </div>
 
 <div class="container">
-
   <!-- Page 1: 封面 -->
   <div class="card cover">
     <div class="icon">🫧</div>
@@ -287,7 +173,6 @@
   <!-- Page 2: 目录 -->
   <div class="card">
     <h2>🌟 提取交给点点/选选，记忆交给聪明蛋。</h2>
-    
     <div class="list-group">
       <div class="list-title">【输入与提取】</div>
       <ul>
@@ -295,14 +180,12 @@
         <li><span class="num">02</span> 🪄 <b>选选</b> —— 语境生词提取</li>
       </ul>
     </div>
-
     <div class="list-group">
       <div class="list-title">【整理与记忆】</div>
       <ul>
         <li><span class="num">03</span> 🥚 <b>聪明蛋</b> —— 核心记忆引擎</li>
       </ul>
     </div>
-
     <div class="hint">
       省去繁杂整理，把力气留给真正的记忆 <span class="arrow">↓</span>
     </div>
@@ -314,7 +197,6 @@
     <p>🥚 <b>聪明蛋</b>：每天抽一点，把知识悄悄咽下去。</p>
     <p>🪄 <b>选选</b>：把冗长的英语倒进去，留下最甜的果肉。</p>
     <p>🫧 <b>点点</b>：把厚重的书切碎，吧嗒吧嗒挑走精髓。</p>
-    
     <div class="hint" style="color: var(--primary);">
       提取重点、整理排版、抽卡复习，一条龙帮你搞定。
     </div>
@@ -326,7 +208,6 @@
     <p><b>运行逻辑：</b>剥离长篇中文资料，重组你的专属知识网络。</p>
     <p><b>交互体验：</b>文字化作圆角方块。支持指尖滑动多选，伴随轻柔的物理下压感与微小水滴音效，极具解压感。</p>
     <p><b>核心玩法：</b>智能剔除标点干扰，选词自动编号排队，一键复制，即刻生成纸质复习索引。</p>
-    
     <div class="btn-container">
         <a href="diandian.html" class="action-btn">🫧 立即体验「点点」</a>
     </div>
@@ -338,7 +219,6 @@
     <p><b>运行逻辑：</b>精准捕获长篇英语阅读中的生词，拒绝冗杂信息。</p>
     <p><b>交互体验：</b>长文自动按句式切片，保持语境完整。指尖轻触，生词瞬间高亮。</p>
     <p><b>核心玩法：</b>独有翻译合并算法，将外部翻译结果一键排版，无缝传输至后面的聪明蛋。</p>
-    
     <div class="btn-container">
         <a href="ocr.html" class="action-btn">🪄 立即体验「选选」</a>
     </div>
@@ -350,7 +230,6 @@
     <p><b>运行逻辑：</b>12种语言交叉互译，为你量身定制的抽卡系统。</p>
     <p><b>交互体验：</b>淡入浮现的翻卡动画，配合打字、选择与连连看三大测试模式。</p>
     <p><b>核心玩法：</b>自定义生词库，接收前面的词汇，通过反复抽卡与测试，建立初步印象并自动收集错题。</p>
-    
     <div class="btn-container">
         <a href="smart.html" class="action-btn">🥚 立即体验「聪明蛋」</a>
     </div>
@@ -364,7 +243,6 @@
       <li>语境盲区 ➡️ 唤醒 <b>选选</b> 🪄</li>
       <li>体系重构 ➡️ 启动 <b>点点</b> 🫧</li>
     </ul>
-    
     <div class="highlight-quote">
       “提取交给点点/选选，记忆交给聪明蛋。”
     </div>
@@ -374,16 +252,12 @@
   <div class="card">
     <h2>🧠 背后的科学 / 大脑的归档机制</h2>
     <p>为什么这三款工具能辅助学习？因为它们的运作完全契合大脑处理信息的三个生理阶段：</p>
-    
     <p><b>1. 降低认知负荷（选选 / 点点）</b><br>
     人的工作记忆容量极小。长篇阅读会产生大量认知噪音，导致大脑过载。选选与点点的剥离功能，实质上是帮你过滤冗余信息，让大脑算力集中在核心概念上。</p>
-    
     <p><b>2. 触发提取练习（聪明蛋）</b><br>
     抽卡与自测，在认知心理学中被称为提取练习。这不仅是在复习，更是在向大脑的海马体发送强烈的信号，为这些知识打上高优先级标签。</p>
-    
     <p><b>3. 睡眠依赖的系统巩固（深睡眠）</b><br>
     当夜间进入慢波睡眠，大脑会启动系统巩固机制。海马体会将白天被高频标记的知识，转移至新皮层，最终固化为长期记忆。</p>
-    
     <div class="reference">
       <b>【参考文献】</b><br>
       Diekelmann, S., & Born, J. (2010). The memory function of sleep. Nature Reviews Neuroscience, 11(2), 114-126.
@@ -397,56 +271,40 @@
     <br>
     <p class="goodnight">晚安。 🌙</p>
   </div>
-
 </div>
 
-<!-- 🚀 音乐按钮（小月亮版本） -->
 <div class="music-btn" id="musicBtn" title="听点治愈的声音">
   <span id="musicIcon">🌙</span>
 </div>
 
 <script>
-/* ==========================================
-   用纯代码手搓一个治愈系的“赛博风铃”
-   ========================================== */
 let audioCtx = null;
 let isPlaying = false;
 let musicInterval = null;
-
-// 选用极其治愈的五声音阶 (C大调的 do re mi sol la，以及高音do)
 const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
-
 const musicBtn = document.getElementById('musicBtn');
 const musicIcon = document.getElementById('musicIcon');
 
 function playTone(freq) {
   if(!audioCtx) return;
-  
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  
   osc.connect(gain);
   gain.connect(audioCtx.destination);
-  
   osc.type = 'sine'; 
   osc.frequency.value = freq;
-  
   const now = audioCtx.currentTime;
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.04, now + 0.05); // 极低的音量
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // 3秒余音
-  
+  gain.gain.linearRampToValueAtTime(0.04, now + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
   osc.start(now);
   osc.stop(now + 3.0);
 }
 
 function playRandomNote() {
   if(!isPlaying) return;
-  
   const randomFreq = notes[Math.floor(Math.random() * notes.length)];
   playTone(randomFreq);
-  
-  // 偶尔(30%概率)来个双音，更有层次感
   if(Math.random() > 0.7) {
     setTimeout(() => {
       const secondFreq = notes[Math.floor(Math.random() * notes.length)];
@@ -456,27 +314,16 @@ function playRandomNote() {
 }
 
 musicBtn.addEventListener('click', () => {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 
   isPlaying = !isPlaying;
-  
   if (isPlaying) {
-    // 开启：月亮变成发光的小星星
     musicBtn.classList.add('playing');
     musicIcon.textContent = '✨'; 
     playRandomNote(); 
-    
-    musicInterval = setInterval(() => {
-      playRandomNote();
-    }, 2500); // 每隔2.5秒随机响一次
+    musicInterval = setInterval(() => playRandomNote(), 2500);
   } else {
-    // 关闭：星星变回灰暗的小月亮
     musicBtn.classList.remove('playing');
     musicIcon.textContent = '🌙';
     clearInterval(musicInterval);
